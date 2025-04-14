@@ -1,32 +1,29 @@
 /*Fonts*/
 @font-face {
-  font-family: Inter;
+  font-family: 'Inter';
   src: url(https://s3.amazonaws.com/statics.addi.com/fonts/inter/Inter-Thin.ttf);
   font-style: normal;
 }
 
 @font-face {
-  font-family: Inter;
+  font-family: 'Inter';
   src: url(https://s3.amazonaws.com/statics.addi.com/fonts/inter/Inter-Regular.ttf);
   font-style: normal;
   font-weight: 400;
 }
 
 @font-face {
-  font-family: Inter;
+  font-family: 'Inter';
   src: url(https://s3.amazonaws.com/statics.addi.com/fonts/inter/Inter-Bold.ttf);
   font-style: normal;
   font-weight: 700;
 }
 
 @font-face {
-  font-family: Mallory;
-  src: url(https://s3.amazonaws.com/statics.addi.com/fonts/mallory/Mallory_Medium.ttf);
+  font-family: 'Outfit';
+  src: url(https://statics.addi.com/fonts/outfit/Outfit-Medium.ttf);
   font-style: normal;
 }
-
-
-/* Colors */
 
 /**
  * ADDI - UI-Foundation
@@ -35,7 +32,35 @@
  */
 
 :root {
-  --color-addi-primary-active: rgb(60, 106, 240);
+  /* Fonts */
+  --font-addi-family-primary-name: 'Outfit';
+  --font-addi-family-secondary-name: 'Inter';
+  --font-addi-family-primary-url-regular: https://statics.addi.com/fonts/outfit/Outfit-Regular.ttf;
+  --font-addi-family-primary-url-italic: https://statics.addi.com/fonts/outfit/Outfit-Light.ttf;
+  --font-addi-family-primary-url-bold: https://statics.addi.com/fonts/outfit/Outfit-Bold.ttf;
+  --font-addi-family-primary-url-bold-italic: https://statics.addi.com/fonts/outfit/Outfit-SemiBold.ttf;
+  --font-addi-family-secondary-url-regular: https://s3.amazonaws.com/statics.addi.com/fonts/inter/Inter-Regular.ttf;
+  --font-addi-family-secondary-url-italic: https://s3.amazonaws.com/statics.addi.com/fonts/inter/Inter-Italic.woff2;
+  --font-addi-family-secondary-url-bold: https://s3.amazonaws.com/statics.addi.com/fonts/inter/Inter-Bold.ttf;
+  --font-addi-family-secondary-url-bold-italic: https://s3.amazonaws.com/statics.addi.com/fonts/inter/Inter-BoldItalic.woff2;
+  --font-addi-weight-thin: 100;
+  --font-addi-weight-extra-light: 200;
+  --font-addi-weight-light: 300;
+  --font-addi-weight-regular: 400;
+  --font-addi-weight-medium: 500;
+  --font-addi-weight-semi-bold: 600;
+  --font-addi-weight-bold: 700;
+  --font-addi-weight-extra-bold: 800;
+  --font-addi-weight-black: 900;
+  --font-addi-format-web-open-font-format: woff;
+  --font-addi-format-web-open-font-format2: woff2;
+  --font-addi-format-true-type: truetype;
+  --font-addi-format-open-type: opentype;
+  --font-addi-format-embedded-open-type: embedded-opentype;
+  --font-addi-format-svg: svg;
+
+  /* Colors */
+  --color-addi-primary-active: rgb(28, 103, 216);
   --color-addi-primary-hover: rgb(10, 57, 196);
   --color-addi-primary-inactive: rgb(204, 221, 255);
   --color-addi-feedback-success: rgb(0, 190, 122);
@@ -48,7 +73,7 @@
   --color-addi-font-hint: rgb(201, 205, 209);
   --color-addi-font-disable: rgb(235, 236, 237);
   --color-addi-font-over-dark: rgb(255, 255, 255);
-  --color-addi-font-action: rgb(60, 106, 240);
+  --color-addi-font-action: rgb(28, 103, 216);
   --color-addi-font-success: rgb(1, 128, 82);
   --color-addi-font-error: rgb(204, 31, 31);
   --color-addi-background-white: rgb(255, 255, 255);
@@ -101,7 +126,7 @@
   --color-addi-comp-five-lighten3: rgb(204, 221, 255);
   --color-addi-comp-five-lighten2: rgb(133, 169, 255);
   --color-addi-comp-five-lighten1: rgb(78, 126, 255);
-  --color-addi-comp-five-base: rgb(60, 106, 240);
+  --color-addi-comp-five-base: rgb(28, 103, 216);
   --color-addi-comp-five-darken1: rgb(32, 79, 214);
   --color-addi-comp-five-darken2: rgb(10, 57, 196);
   --color-addi-comp-five-darken3: rgb(15, 53, 163);
@@ -121,109 +146,58 @@
   --color-addi-white: rgb(255, 255, 255);
 }
 
-/* Fonts */
-
-:root {
-  --font-addi-family-primary-name: Mallory;
-  --font-addi-family-primary-url-regular: https://s3.amazonaws.com/statics.addi.com/fonts/mallory/Mallory_Book.ttf;
-  --font-addi-family-primary-url-italic: https://s3.amazonaws.com/statics.addi.com/fonts/mallory/Mallory_Book_Italic.ttf;
-  --font-addi-family-primary-url-bold: https://s3.amazonaws.com/statics.addi.com/fonts/mallory/Mallory_Bold.ttf;
-  --font-addi-family-primary-url-bold-italic: https://s3.amazonaws.com/statics.addi.com/fonts/mallory/Mallory_Bold_Italic.ttf;
-  --font-addi-family-secondary-name: Inter;
-  --font-addi-family-secondary-url-regular: https://s3.amazonaws.com/statics.addi.com/fonts/inter/Inter-Regular.ttf;
-  --font-addi-family-secondary-url-italic: https://s3.amazonaws.com/statics.addi.com/fonts/inter/Inter-Italic.woff2;
-  --font-addi-family-secondary-url-bold: https://s3.amazonaws.com/statics.addi.com/fonts/inter/Inter-Bold.ttf;
-  --font-addi-family-secondary-url-bold-italic: https://s3.amazonaws.com/statics.addi.com/fonts/inter/Inter-BoldItalic.woff2;
-  --font-addi-weight-thin: 100;
-  --font-addi-weight-extra-light: 200;
-  --font-addi-weight-light: 300;
-  --font-addi-weight-regular: 400;
-  --font-addi-weight-medium: 500;
-  --font-addi-weight-semi-bold: 600;
-  --font-addi-weight-bold: 700;
-  --font-addi-weight-extra-bold: 800;
-  --font-addi-weight-black: 900;
-  --font-addi-format-web-open-font-format: woff;
-  --font-addi-format-web-open-font-format2: woff2;
-  --font-addi-format-true-type: truetype;
-  --font-addi-format-open-type: opentype;
-  --font-addi-format-embedded-open-type: embedded-opentype;
-  --font-addi-format-svg: svg;
-}
-
 addi-widget > addi-banner > div.addi-banner-co {
-  /*padding: 5vh 0 10vh 0;*/
   margin:12px 0;
 }
 
 .addi_description_container .container span {
-  color: black;
+  color: var(--color-addi-black);
 }
 
 addi-widget > addi-banner > div.addi-banner-wrapper-co {
-  /*padding: 5vh 0 10vh 0;*/
   margin:12px 0;
 }
 
-li.wc_payment_method.payment_method_addi > label[for=payment_method_addi] > img[alt="Paga a cuotas"] {
-margin-left: 6px;
-margin-top: -7px;
-max-height: 25px;
+li.wc_payment_method.payment_method_addi>label[for=payment_method_addi]>img[alt="Paga a cuotas"] {
+  margin-left: 6px;
+  margin-top: -7px;
 }
 
 li.wc_payment_method.payment_method_addi > label[for=payment_method_addi] > img {
   width: 65px;
-  height: 25px;
+  height: auto;
 }
-
-/*li.wc_payment_method.payment_method_addi > div.payment_box.payment_method_addi {
-border: 1px solid #C9CDD1;
-box-sizing: border-box;
-border-radius: 8px;
-}*/
 
 li.wc_payment_method.payment_method_addi > div.payment_box.payment_method_addi > div.desc_header {
 height: 50px;
-  border-bottom: 1px solid #C9CDD1;
+  border-bottom: 1px solid var(--color-addi-gray-lighten2);
 }
-
-/*.constraint-container {
-margin: 10px 0;
-}*/
 
 .constraint-container {
 font-size: 12px;
 padding: 6px 16px 6px 18px;
-border: 1px solid #FA4D4B;
+border: 1px solid var(--color-addi-comp-four-base);
 border-radius: 3px;
-background: #FFF2F2;
+background: var(--color-addi-background-white);
 }
 
-/*.constraint-label {
-font-size: 12px;
-background-color: #da565c;
-border-radius: 4px;
-padding: 3px;
-color: #fff;
-}*/
+
 
 .discount-container {
-/*margin: 10px 0;*/
 margin: 0 20px 10px;
-background: #00BE7A;
-border: 1px solid #00BE7A;
+background: var(--color-addi-comp-three-lighten1);
+border: 1px solid var(--color-addi-comp-three-lighten1);
 box-sizing: border-box;
 border-radius: 16px;
 width: fit-content;
 }
 
 #payment .payment_methods li p.discount-label, .discount-label  {
-/*background-color: #6cba9b;*/
 border-radius: 16px;
 padding: 3px;
 font-weight: 600;
 font-size: 14px;
-color: #fff;
+color: var(--color-addi-white);
 margin: 0 20px 10px;
 }
 
@@ -249,7 +223,7 @@ cursor:not-allowed !important;
 .addi-description__container4x {
   height: 100%;
   background: var(--color-addi-gray-lighten4);
-  border: 1px solid #DCDCDC;
+  border: 1px solid var(--color-addi-gray-lighten3);
   box-sizing: border-box;
   border-radius: 12px;
   padding: 20px;
@@ -344,7 +318,7 @@ cursor:not-allowed !important;
 }
 
 .addi-bottom-info__label {
-  font-family: 'Inter';
+  font-family: var(--font-addi-family-secondary-name);
   font-weight: var(--font-addi-weight-regular);
   font-size: var(--size-addi-font-x-small);
   line-height: 20px;
@@ -396,7 +370,7 @@ cursor:not-allowed !important;
 /* Header */
 
 .addi-header {
-  font-family: 'Mallory';
+  font-family: var(--font-addi-family-primary-name);
   margin-bottom: 16px;
 }
 
@@ -424,7 +398,7 @@ cursor:not-allowed !important;
 
 .addi-header .addi-header__discount {
   display: flex;
-  color: #000;
+  color: var(--color-addi-black);
   font-size: var(--size-addi-font-small);
   font-weight: var(--font-addi-weight-bold);
   margin-top: 5px;
@@ -484,7 +458,7 @@ cursor:not-allowed !important;
 }
 
 .addi-instructions-info__title {
-  font-family: 'Mallory';
+  font-family: var(--font-addi-family-primary-name);
   font-weight: var(--font-addi-weight-bold);
   font-size: var(--size-addi-font-small);
   line-height: 20px;
@@ -493,7 +467,7 @@ cursor:not-allowed !important;
 }
 
 .addi-instructions-info__label {
-  font-family: 'Inter';
+  font-family: var(--font-addi-family-secondary-name);
   font-weight: var(--font-addi-weight-regular);
   font-size: var(--size-addi-font-xx-small);
   line-height: 15px;
@@ -554,7 +528,6 @@ cursor:not-allowed !important;
 }
 
 .addi-description-info__logo {
-  /* padding-right: 12px; */
   height: 24px;
 }
 
@@ -570,7 +543,7 @@ cursor:not-allowed !important;
   content: '';
   height: 7%;
   width: 1px;
-  background-color: #000000;
+  background-color: var(--color-addi-black);
 }
 
 .addi-description-info-text-wepink {
@@ -579,10 +552,10 @@ cursor:not-allowed !important;
 
 
 .addi-description-info-text__label4x {
-  font-family: 'Inter';
+  font-family: var(--font-addi-family-secondary-name);
   font-style: normal;
   font-weight: 400;
-  color: #18181F;
+  color: var(--color-addi-font-primary);
   font-size: 12px;
   line-height: 136%;
   letter-spacing: 0.01em;
@@ -591,8 +564,8 @@ cursor:not-allowed !important;
 }
 
 .addi-title__strong {
-  font-family: 'Inter';
-  color: #18181F;
+  font-family: var(--font-addi-family-secondary-name);
+  color: var(--color-addi-font-primary);
   size: 14px;
   line-height: 17px;
 }
@@ -611,11 +584,11 @@ cursor:not-allowed !important;
   width: auto;
   min-height: 37px;
   border-radius: 4px;
-  background-color: #FFFFFF;
+  background-color: var(--color-addi-white);
 }
 
 .addi-step__container:first-child {
-  border: 1px solid #CCDDFF;
+  border: 1px solid var(--color-addi-comp-five-lighten3);
 }
 
 .addi-step__container.selector {
@@ -630,12 +603,11 @@ cursor:not-allowed !important;
 }
 
 .addi-step-active__number, .addi-step-inactive__number {
-  font-family: 'Mallory';
+  font-family: var(--font-addi-family-primary-name);
   font-style: normal;
   border-radius: 50%;
   font-weight: 700;
   font-size: 15px;
-  /* margin: 0 8px 8px 0; */
   width: 25px;
   height: 22px;
   line-height: 120%;
@@ -647,7 +619,6 @@ cursor:not-allowed !important;
 }
 
 .addi-step-active__number {
-  /*background: var(--color-addi-primary-active);*/
   background-image: url("steps/one.svg")
 }
 
@@ -668,18 +639,13 @@ cursor:not-allowed !important;
   color: var(--color-addi-comp-four-lighten5);
 }
 
-.addi-step-inactive__number {
-  /*background: var(--color-addi-comp-five-lighten4);*/
-  /*color: var(--color-addi-comp-five-lighten1);*/
-}
-
 .addi-step-inactive__number-wepink {
   background: var(--color-addi-comp-four-lighten5);
   color: var(--color-addi-comp-four-accent-lighten2);
 }
 
 .addi-step-active__name, .addi-step-inactive__name {
-  font-family: 'Inter';
+  font-family: var(--font-addi-family-secondary-name);
   line-height: 15px;
   font-size: 12px;
   letter-spacing: 0.01em;
@@ -701,7 +667,7 @@ cursor:not-allowed !important;
 }
 
 .addi-step__price {
-  font-family: 'Inter';
+  font-family: var(--font-addi-family-secondary-name);
   font-style: normal;
   font-weight: 600;
   font-size: 14px;
@@ -711,7 +677,7 @@ cursor:not-allowed !important;
 }
 
 .addi-info-message {
-  font-family: 'Inter';
+  font-family: var(--font-addi-family-secondary-name);
   color: var(--color-addi-primary-active);
   display: flex;
   align-items: center;
@@ -728,7 +694,7 @@ cursor:not-allowed !important;
 .addi-description__container4x {
   height: 100%;
   background: var(--color-addi-gray-lighten4);
-  border: 1px solid #DCDCDC;
+  border: 1px solid var(--color-addi-gray-lighten3);
   box-sizing: border-box;
   border-radius: 12px;
   padding: 20px;
@@ -739,19 +705,8 @@ cursor:not-allowed !important;
       max-width: 750px;
   }
 
-  .addi-step-parcelas {
-      /* flex-direction: row; */
-  }
-
-  .addi-step {
-      /* width: auto; */
-      /* flex-direction: column; */
-  }
-
   .addi-step__container {
       padding: 0 6px;
-      /* align-items: start; */
-      /* flex-wrap: wrap; */
   }
 }
 
@@ -764,7 +719,7 @@ cursor:not-allowed !important;
 }
 
 .addi-payment-price {
-  font-family: 'Mallory';
+  font-family: var(--font-addi-family-primary-name);
   font-style: normal;
   font-weight: 700;
   font-size: 16px;
@@ -778,7 +733,7 @@ cursor:not-allowed !important;
 }
 
 .addi-payment__description {
-  font-family: 'Inter';
+  font-family: var(--font-addi-family-secondary-name);
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
@@ -829,10 +784,10 @@ p
 
 .addi-co-description-block {
   border-radius: 8px;
-  border: 1px solid #EBECED;
+  border: 1px solid var(--color-addi-gray-lighten3);
   padding: 8px;
   box-sizing: border-box;
-  background-color: white;
+  background-color: var(--color-addi-white);
   display: inline-flex;
 }
 
@@ -852,23 +807,22 @@ p
 }
 
 .addi-co-subtitle {
-  font-family: 'Inter';
+  font-family: var(--font-addi-family-secondary-name);
   font-style: normal;
   font-weight: 400;
   font-size: 11px;
   line-height: 148%;
-  color: #727272 !important;
+  color: var(--color-addi-font-secondary) !important;
 }
 .addi-co-subtitle a {
-   color: #3C6AF0;
+   color: var(--color-addi-primary-active);
    text-decoration: none !important;
  }
 
 .addi_description_container.flex {
-  background-color: white;
-  border: 1px solid #DCDCDC;
+  background-color: var(--color-addi-white);
+  border: 1px solid var(--color-addi-gray-lighten3);
   border-radius: 8px;
-  min-width: 260px;
 }
 
 /* Addi flex */
@@ -886,7 +840,7 @@ p
 
 .flex-header .logo img {
   width: 78px;
-  height: 28px;
+  height: auto;
 }
 
 .bnpl-header .logo img{
@@ -897,20 +851,20 @@ p
 }
 
 .flex-header .title {
-  font-family: 'Mallory';
+  font-family: var(--font-addi-family-primary-name);
   font-style: normal;
   font-weight: 700;
   font-size: 20px;
   line-height: 124%;
   letter-spacing: -0.01em;
-  color: #18181F;
+  color: var(--color-addi-font-primary);
   margin-bottom: 10px;
 }
 
 .addi-co-description-block.flex {
   border-radius: 0;
   border: none;
-  font-family: 'Inter';
+  font-family: var(--font-addi-family-secondary-name);
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
@@ -922,15 +876,23 @@ p
   margin-right: 10px;
 }
 
-.addi-co-description-footer {
+.addi-co-description-footer, .addi-co-description-footer-payer {
   margin-top: 10px;
   margin-bottom: 16px;
-  font-family: 'Inter';
+  font-family: var(--font-addi-family-secondary-name);
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
   line-height: 148%;
-  color: #4D525C;
+}
+
+.addi-co-description-footer{
+  color: var(--color-addi-font-secondary);
+}
+
+.addi-co-description-footer-payer{
+  color: var(--color-addi-primary-active);
+  margin-top: 20px;
 }
 
 .discount-container-flex {
@@ -945,13 +907,13 @@ p
 }
 
 .discount-container-flex .discount-label-flex {
-  font-family: 'Inter';
+  font-family: var(--font-addi-family-secondary-name);
   font-style: normal;
   text-align: center;
   font-weight: 600;
   font-size: 12px;
   line-height: 120%;
-  color: #018052;
+  color: var(--color-addi-comp-three-base);
 }
 
 .constraint-container-flex {
@@ -960,15 +922,15 @@ p
   align-items: flex-start;
   padding: 8px;
   gap: 10px;
-  background: #FFF2F2;
-  border: 1px solid #FA4D4B;
+  background: var(--color-addi-comp-four-lighten5);
+  border: 1px solid var(--color-addi-feedback-error);
   border-radius: 4px;
-  font-family: 'Inter';
+  font-family: var(--font-addi-family-secondary-name);
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
   line-height: 148%;
-  color: #4D525C;
+  color: var(--color-addi-font-secondary);
 }
 
 /* Widget*/
@@ -983,7 +945,7 @@ p
   height: 100%;
   box-sizing: border-box;
   padding: 16px;
-  background-color: #fafafa;
+  background-color: var(--color-addi-gray-lighten4);
 }
 
 .addi-description__logo-flex {
@@ -1012,7 +974,7 @@ p
 }
 
 .addi-description__logo-sub-flex {
-  color: #00be7a;
+  color: var(--color-addi-comp-three-lighten1);
   font-weight: 400;
   font-size: 12px;
   line-height: 136%;
@@ -1032,15 +994,15 @@ p
 }
 
 .addi-container__box-flex {
-  background-color: #fff;
+  background-color: var(--color-addi-white);
   margin: 8px 0 8px;
   border-radius: 4px;
   padding: 8px 14px;
-  border: 1px solid #ebeced;
+  border: 1px solid var(--color-addi-gray-lighten3);
 }
 
 .addi-title__primary-bold-flex {
-  font-family: 'Mallory';
+  font-family: var(--font-addi-family-primary-name);
   font-style: normal;
   font-weight: 700;
   font-size: 16px;
@@ -1055,7 +1017,7 @@ p
 
 .addi-step__container-flex {
   display: flex;
-  font-family: 'Inter';
+  font-family: var(--font-addi-family-secondary-name);
   font-weight: 400;
   margin: 12px;
   align-items: center;
@@ -1065,13 +1027,13 @@ p
   font-weight: 400;
   font-size: 14px;
   line-height: 148%;
-  color: #4d525c;
-  font-family: 'Inter';
+  color: var(--color-addi-font-secondary);
+  font-family: var(--font-addi-family-secondary-name);
   margin: 0;
 }
 
 .addi-title__strong-flex {
-  font-family: 'Inter';
+  font-family: var(--font-addi-family-secondary-name);
   color: var(--color-addi-font-primary);
   font-weight: 700;
   line-height: 148%;
@@ -1107,8 +1069,8 @@ p
 .addi-bnpn {
   width: 100%;
   border-radius: 8px;
-  background: #3D6BF3;
-  border: 0.963px solid #E1E8ED;
+  background: var(--color-addi-primary-active);
+  border: 0.963px solid var(--color-addi-gray-lighten3);
   display: flex;
   flex-direction: column;
 }
@@ -1118,8 +1080,6 @@ p
 }
 
 .addi-bnpn-content {
-  width: 90%;
-  height: 90%;
   background-image: url('assets/bnpn-background.png');
   background-size: cover;
   position: relative;
@@ -1129,8 +1089,8 @@ p
   flex-direction: column;
   align-items: flex-start;
   padding: 5%;
-  color: #FFF;
-  font-family: Inter;
+  color: var(--color-addi-white);
+  font-family: var(--font-addi-family-secondary-name);
 }
 
 .addi-bnpn-header {
@@ -1167,28 +1127,27 @@ p
 
 .addi-bnpn-content-card {
   border-radius: 12px;
-  border: 1px solid #DDE5EB;
-  background: #FFF;
+  border: 1px solid var(--color-addi-gray-lighten2);
+  background: var(--color-addi-white);
   /* elevation-16 */
-  box-shadow: 0px 16px 24px 0px rgba(41, 53, 65, 0.20);
+  box-shadow: 0px 16px 24px 0px rgba(var(--color-addi-gray-base), 0.20);
   display: flex;
   padding: var(--spacing-16, 16px);
   flex-direction: column;
   align-items: flex-start;
   gap: var(--spacing-8, 8px);
   align-self: stretch;
-  min-width: 200px;
   flex-grow: 1;
 }
 
 .addi-bnpn-content-card-title {
   display: flex;
-  color: #3D6BF3;
+  color: var(--color-addi-primary-active);
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: Inter;
+  font-family: var(--font-addi-family-secondary-name);
   font-size: 14px;
   font-style: normal;
   font-weight: 700;
@@ -1205,13 +1164,13 @@ p
 #refresh-icon {
   padding: 8px;
   border-radius: 100px ;
-  background: #EDF4FF;
+  background: var(--color-addi-comp-five-lighten4);
 }
 
 .addi-bnpn-content-card-summary {
   display: flex;
-  color: var(--color-text-base-default, #545454);
-  font-family: Inter;
+  color: var(--color-addi-font-primary);
+  font-family: var(--font-addi-family-secondary-name);
   font-size: 12px;
   font-style: normal;
   font-weight: 400;
@@ -1233,25 +1192,25 @@ p
   padding: 4px 8px;
   align-items: center;
   gap: 4px;
-  color: #9E49EA;
+  color: var(--color-addi-comp-three-lighten1);
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
   line-height: 140%; /* 16.8px */
   letter-spacing: -0.12px;
   border-radius: 4px;
-  border: 1px solid #D19AFF;
-  background: #F5EFFF;
+  border: 1px solid var(--color-addi-comp-three-lighten1);
+  background: var(--color-addi-white);
 }
 
 .addi-bnpn-footer {
-  color: #3D6BF3;
-  font-family: Inter;
+  color: var(--color-addi-primary-active);
+  font-family: var(--font-addi-family-secondary-name);
   font-size: 14px;
   font-style: normal;
   font-weight: 600;
   line-height: 140%;
   padding: 24px;
-  background: #fff;
+  background: var(--color-addi-white);
   flex-grow: 1;
 }

@@ -1,6 +1,6 @@
 	jQuery(document).ready( function($) {
 
-		const widgetPositionValue = $('select#woocommerce_addi_field_widget_position').value;
+		const widgetPositionValue = $('select#woocommerce_addi_field_home_banner_position').val();
 		
 		$('label[for=woocommerce_addi_element_reference]').parent().parent().addClass('hidden');
 		
@@ -8,17 +8,13 @@
 			$('label[for=woocommerce_addi_element_reference]').parent().parent().removeClass('hidden');
 		}
 		
-		$('select#woocommerce_addi_field_widget_position').on('change', function() {
-			//console.log('select changed!');
-			//console.log(this.value);
+		$('select#woocommerce_addi_field_home_banner_position').on('change', function() {
 			const option = this.value;
 			
 			if(option === 'custom') {
-				//$('input#woocommerce_addi_element_reference').removeClass('hidden');
 				$('label[for=woocommerce_addi_element_reference]').parent().parent().removeClass('hidden');
 			}
 			else {
-				//$('input#woocommerce_addi_element_reference').addClass('hidden');
 				$('label[for=woocommerce_addi_element_reference]').parent().parent().addClass('hidden');
 			}
 		});
@@ -52,41 +48,118 @@
 			}
 		});
 
-		/* see more link*/
-		$('label[for=woocommerce_addi_widget_section_widget_header]').
-		after('<a target="popup" href="https://s3.amazonaws.com/statics.addi.com/assets/manuals/guide-widget.png">Ver Ejemplo</a>');
+		//Disable autocomplete
+		var inputs = document.querySelectorAll('input.input-text');
+		inputs.forEach(function(input) {
+			input.setAttribute('autocomplete', 'off');
+		});
+
+		//Hide description in the options
+		var textareas = document.querySelectorAll('textarea.description-hidden');
+		textareas.forEach(function(textarea) {
+			var tr = textarea.closest('tr[valign="top"]');
+			
+			if (tr) {
+				tr.style.display = 'none';
+			}
+		});
+
+		// Helper function to safely handle jQuery selections and DOM manipulations
+		function safelyUpdateElement(selector, action, content) {
+			try {
+				const $element = $(selector);
+				if ($element.length === 0) {
+					console.warn(`Element not found: ${selector}`);
+					return false;
+				}
+				switch (action) {
+					case 'before':
+						$element.before(content);
+						break;
+					case 'after':
+						$element.after(content);
+						break;
+					default:
+						console.warn(`Unknown action: ${action}`);
+						return false;
+				}
+				return true;
+			} catch (error) {
+				console.error(`Error updating element ${selector}:`, error);
+				return false;
+			}
+		}
+
+		// Add logo
+		safelyUpdateElement('label[for=woocommerce_addi_addi_logo]', 'before',
+			'<div style="display: flex; align-items: center;">' +
+			`<img src="${addiPlugin.url}assets/icon-128x128.png" alt="Addi" style="width: 70px;" />` +
+			`<img src="${addiPlugin.url}assets/ADDI_logo.png" alt="Addi" style="width: 128px;" />` +
+			'</div>'
+		);
+
+		// Add checkout example
+		safelyUpdateElement('label[for=woocommerce_addi_description_checkout_page]', 'after',
+			'<img class="description-image" src="https://s3.amazonaws.com/statics.addi.com/assets/woocommerce/checkout-description-options.png" alt="Addi" />' +
+			'<br><div class="description-image">*En caso de querer activar la opcion de debito, Comunícate con el equipo de soporte de Addi para aliados al whatsapp: ' +
+			'<a class="whatsapp-link" target="_blank" href="https://api.whatsapp.com/send?phone=5715806869">+57 1 580 6869</a></div>'
+		);
+
+		// Add banner image
+		safelyUpdateElement('label[for=woocommerce_addi_section_home_banner]', 'after',
+			`<br><img class="description-image" src="${addiPlugin.url}assets/banner-settings.png" alt="Addi" />`
+		);
+
+		// Add widget image
+		safelyUpdateElement('label[for=woocommerce_addi_section_widget]', 'after',
+			'<br><img src="' + addiPlugin.url + 'assets/widget.png" alt="Addi" style="width: 300px;" /> ' +
+			'<br><br> <a href="https://s3.amazonaws.com/statics.addi.com/assets/manuals/guide-widget.png" target="_blank">Ver Ejemplo</a>'
+		);
+
+		// Add see more links
+		const popupParams = 'width=730,height=755,top=100,left=100,resizable=no,scrollbars=no';
 		
-		$('label[for=woocommerce_addi_widget_section_modal_header]')
-			.after("<a target='popup' href='https://s3.amazonaws.com/statics.addi.com/assets/manuals/guide-modal.png'>Ver Ejemplo</a>");
-		
-			$('label[for=woocommerce_addi_field_widget_type]')
-			.after("<a target='popup' href='https://s3.amazonaws.com/statics.addi.com/addi-home-banner/addiHomeBannerOptions.png'>Ver Ejemplo</a>");
-		
-		/* js script for widget/modal styles */
+		safelyUpdateElement('#woocommerce_addi_section_widget_header', 'after',
+			`<a href='https://s3.amazonaws.com/statics.addi.com/assets/manuals/guide-widget.png' ` +
+			`onclick="window.open('https://s3.amazonaws.com/statics.addi.com/assets/manuals/guide-widget.png', 'popup', '${popupParams}'); return false;">Ver Ejemplo</a>`
+		);
+
+		safelyUpdateElement('#woocommerce_addi_widget_section_modal_header', 'after',
+			`<a href='https://s3.amazonaws.com/statics.addi.com/assets/manuals/guide-modal.png' ` +
+			`onclick="window.open('https://s3.amazonaws.com/statics.addi.com/assets/manuals/guide-modal.png', 'popup', '${popupParams}'); return false;">Ver Ejemplo</a>`
+		);
+
+		safelyUpdateElement('label[for=woocommerce_addi_field_home_banner_type]', 'after',
+			`<br><a href='https://s3.amazonaws.com/statics.addi.com/addi-home-banner/addiHomeBannerOptions.png' ` +
+			`onclick="window.open('https://s3.amazonaws.com/statics.addi.com/addi-home-banner/addiHomeBannerOptions.png', 'popup', '${popupParams}'); return false;">Ver Ejemplo</a>`
+		);
+
 		/* widget style*/
-		$('#woocommerce_addi_widgetBorderColor').after("<span class='customCircle addiWidget step1'>1</span>");
-		$('#woocommerce_addi_widgetBorderRadius').after("<span class='customCircle addiWidget step2'>2</span>");
-		$('#woocommerce_addi_widgetFontColor').after("<span class='customCircle addiWidget step3'>A</span>");
-		$('#woocommerce_addi_widgetFontFamily').after("<span class='customCircle addiWidget step4'>B</span>");
-		$('#woocommerce_addi_widgetFontSize').after("<span class='customCircle addiWidget step5'>C</span>");
-		$('#woocommerce_addi_widgetBadgeBackgroundColor').after("<span class='customCircle addiWidget step6'>4</span>");
-		$('#woocommerce_addi_widgetInfoBackgroundColor').after("<span class='customCircle addiWidget step7'>5</span>");
-		$('#woocommerce_addi_widgetMargin').after("<span class='customCircle addiWidget step8'>6</span>");
-		$('#woocommerce_addi_modalBadgeLogoStyle').after("<span class='customCircle addiWidget step9'>7</span>");
-		/* modal style*/
-		$('#woocommerce_addi_modalBackgroundColor').after("<span class='customCircle addiWidgetModal step1'>1</span>");
-		$('#woocommerce_addi_modalFontColor').after("<span class='customCircle addiWidgetModal step2'>A</span>");
-		$('#woocommerce_addi_modalPriceColor').after("<span class='customCircle addiWidgetModal step3'>3</span>");
-		$('#woocommerce_addi_modalBadgeBackgroundColor').after("<span class='customCircle addiWidgetModal step4'>A</span>");
-		$('#woocommerce_addi_modalBadgeBorderRadius').after("<span class='customCircle addiWidgetModal step5'>B</span>");
-		$('#woocommerce_addi_modalBadgeFontColor').after("<span class='customCircle addiWidgetModal step6'>C</span>");
-		$('#woocommerce_addi_modalCardColor').after("<span class='customCircle addiWidgetModal step7'>5</span>");
-		$('#woocommerce_addi_modalButtonBorderColor').after("<span class='customCircle addiWidgetModal step8'>A</span>");
-		$('#woocommerce_addi_modalButtonBorderRadius').after("<span class='customCircle addiWidgetModal step9'>B</span>");
-		$('#woocommerce_addi_modalButtonBackgroundColor').after("<span class='customCircle addiWidgetModal step10'>C</span>");
-		$('#woocommerce_addi_modalButtonFontColor').after("<span class='customCircle addiWidgetModal step11'>D</span>");
-		/* js script for widget/modal styles */
+		safelyUpdateElement('#woocommerce_addi_widgetBorderColor', 'after', "<span class='customCircle addiWidget step1'>1</span>");
+		safelyUpdateElement('#woocommerce_addi_widgetBorderRadius', 'after', "<span class='customCircle addiWidget step2'>2</span>");
+		safelyUpdateElement('#woocommerce_addi_widgetFontColor', 'after', "<span class='customCircle addiWidget step3'>A</span>");
+		safelyUpdateElement('#woocommerce_addi_widgetFontFamily', 'after', "<span class='customCircle addiWidget step4'>B</span>");
+		safelyUpdateElement('#woocommerce_addi_widgetFontSize', 'after', "<span class='customCircle addiWidget step5'>C</span>");
+		safelyUpdateElement('#woocommerce_addi_widgetBadgeBackgroundColor', 'after', "<span class='customCircle addiWidget step6'>4</span>");
+		safelyUpdateElement('#woocommerce_addi_widgetInfoBackgroundColor', 'after', "<span class='customCircle addiWidget step7'>5</span>");
+		safelyUpdateElement('#woocommerce_addi_widgetMargin', 'after', "<span class='customCircle addiWidget step8'>6</span>");
+		safelyUpdateElement('#woocommerce_addi_modalBadgeLogoStyle', 'after', "<span class='customCircle addiWidget step9'>7</span>");
 		
+		/* modal style*/
+		safelyUpdateElement('#woocommerce_addi_modalBackgroundColor', 'after', "<span class='customCircle addiWidgetModal step1'>1</span>");
+		safelyUpdateElement('#woocommerce_addi_modalFontColor', 'after', "<span class='customCircle addiWidgetModal step2'>A</span>");
+		safelyUpdateElement('#woocommerce_addi_modalPriceColor', 'after', "<span class='customCircle addiWidgetModal step3'>3</span>");
+		safelyUpdateElement('#woocommerce_addi_modalBadgeBackgroundColor', 'after', "<span class='customCircle addiWidgetModal step4'>A</span>");
+		safelyUpdateElement('#woocommerce_addi_modalBadgeBorderRadius', 'after', "<span class='customCircle addiWidgetModal step5'>B</span>");
+		safelyUpdateElement('#woocommerce_addi_modalBadgeFontColor', 'after', "<span class='customCircle addiWidgetModal step6'>C</span>");
+		safelyUpdateElement('#woocommerce_addi_modalCardColor', 'after', "<span class='customCircle addiWidgetModal step7'>5</span>");
+		safelyUpdateElement('#woocommerce_addi_modalButtonBorderColor', 'after', "<span class='customCircle addiWidgetModal step8'>A</span>");
+		safelyUpdateElement('#woocommerce_addi_modalButtonBorderRadius', 'after', "<span class='customCircle addiWidgetModal step9'>B</span>");
+		safelyUpdateElement('#woocommerce_addi_modalButtonBackgroundColor', 'after', "<span class='customCircle addiWidgetModal step10'>C</span>");
+		safelyUpdateElement('#woocommerce_addi_modalButtonFontColor', 'after', "<span class='customCircle addiWidgetModal step11'>D</span>");
+		
+
+		/*Functions for handle cookies*/
 		function getCookie(cname) {
 		let name = cname + "=";
 		let decodedCookie = decodeURIComponent(document.cookie);

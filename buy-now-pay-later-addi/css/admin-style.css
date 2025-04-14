@@ -9,18 +9,18 @@ label[for="woocommerce_addi_hidden_field_1"] + br + p.description {
   
 .hr-default {
   background: transparent;
-  border-bottom: none;
+  border-top: none;
+  border-bottom: 1px solid grey;	
   border-left: none;
   border-right: none;
   width: 100% !important;
-  border-top: 1px solid grey;	
   position: relative;
   margin: 0% -10% !important;
   outline: none !important;
   pointer-events: none; 
 }
 
-.widget-section-header {
+.section-header {
   background-color: transparent !important;
   border: none !important;
   display: none;
@@ -42,8 +42,10 @@ label[for="woocommerce_addi_widget-section-header"] {
   font-size: 1.3em;
 }
 
-label[for="woocommerce_addi_addi_description_checkout_page"] {
-  min-width: 440px;
+label[for="woocommerce_addi_addi_description_checkout_page"],
+label[for="woocommerce_addi_description_checkout_page"],
+.description-image {
+  width: 300%;
   color: #646970 !important;
   font-size: 13px !important;
 	top: -27px;
@@ -51,12 +53,17 @@ label[for="woocommerce_addi_addi_description_checkout_page"] {
     font-family: inherit;
 }
 
-label[for="woocommerce_addi_addi_section_product_page"] {
+label[for="woocommerce_addi_section_widget"],
+label[for="woocommerce_addi_addi_section_checkout_page"],
+label[for="woocommerce_addi_addi_section_general_page"],
+label[for="woocommerce_addi_section_home_banner"] {
   font-size: 1.2em !important;
+  width: 300%;
 }
 
-label[for="woocommerce_addi_addi_section_checkout_page"] {
-  font-size: 1.2em !important;
+.description-image {
+  position: static;
+  width: 500%;
 }
 
 /* Widget / Modal styles in admin */
@@ -190,5 +197,47 @@ label[for="woocommerce_addi_addi_section_checkout_page"] {
   background-color:#9832ed;
   color: white;
 }
-/*Modal*/
+/*for screens of less 781px*/
+@media (max-width: 781px) {
+  label[for="woocommerce_addi_section_widget"],
+  label[for="woocommerce_addi_addi_section_checkout_page"],
+  label[for="woocommerce_addi_addi_section_general_page"],
+  label[for="woocommerce_addi_addi_description_checkout_page"],
+  label[for="woocommerce_addi_description_checkout_page"],
+  label[for="woocommerce_addi_section_home_banner"] {
+    width: 100%;
+  }
+  .hr-default {
+    margin: 0% 0% !important;
+  }
+  .description-image {
+    width: 100%;
+  }
+  #addi-settings-form td.forminp {
+    display: block;
+  }
+  .customCircle {
+    margin: 10px 0;
+  }
+}
+/*config*/
+#addi-settings-form th.titledesc {
+  align-content: center;
+}
+#addi-settings-form .forminp {
+  display: table-cell;
+  margin-bottom: 0;
+}
+#addi-settings-form a {
+  text-decoration: none;
+  font-weight: bold;
+  color:#1C67D8;
+}
 
+#addi-settings-form tr {
+  margin: 10px 0; 
+}
+.whatsapp-link{
+  position: relative;
+  z-index: 1;
+}

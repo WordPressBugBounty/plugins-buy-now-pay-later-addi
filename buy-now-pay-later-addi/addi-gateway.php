@@ -1,11 +1,11 @@
 <?php
 /*
- * Plugin Name: Buy Now Pay Later - ADDI
+ * Plugin Name: Addi - Cuotas que se adaptan a ti
  * Plugin URI: https://co.addi.com/
- * Description: Ofrece a tus clientes la posibilidad de comprar a cuotas lo que quieran, cuando quieran, pagando después con <strong>Addi</strong>. En minutos. SIN INTERESES. Sin complicaciones.
+ * Description: Ofrece a tus clientes la posibilidad de comprar a cuotas lo que quieran, cuando quieran, pagando después con <strong>Addi</strong>. En minutos y sin complicaciones.
  * Author: Addi
  * Author URI: https://co.addi.com/
- * Version: 1.9.3
+ * Version: 2.0.0
  * Requires at least: 5.2
  * Requires PHP:      7.0
  * License: GPL v2 or later
@@ -13,7 +13,13 @@
  * Domain Path: /languages
  */
 
-ini_set("session.cookie_secure", 1);
+// Set secure session cookies early
+function addi_set_secure_session() {
+    if (!headers_sent()) {
+        ini_set('session.cookie_secure', 1);
+    }
+}
+add_action('init', 'addi_set_secure_session', 1);
 
 /*
  * file required to use some plugin hooks functions
@@ -162,9 +168,27 @@ function fx_addi_admin_notice()
     }
 }
 
-add_action('woocommerce_before_add_to_cart_form', 'addi_before_add_to_cart_form');
+/**
+ * Add action links
+ *
+ * @param array  $links Array of plugin action links
+ * @param string $file  Plugin file path
+ * @return array Modified array of plugin action links
+ */
+function addi_plugin_action_links($links) {
+    $settings_link = sprintf(
+        '<a href="%s">%s</a>',
+        esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=addi')),
+        esc_html__('Configuración', 'buy-now-pay-later-addi')
+    );
+    array_unshift($links, $settings_link);
+    return $links;
+}
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'addi_plugin_action_links');
 
-function addi_before_add_to_cart_form($argPosition)
+add_action('woocommerce_single_product_summary', 'addi_render_widget');
+
+function addi_render_widget($argPosition)
 {
     global $product;
     global $wpdb;
@@ -175,25 +199,46 @@ function addi_before_add_to_cart_form($argPosition)
     // LOAD THE WC LOGGER
     $logger = wc_get_logger();
     $styles_to_json = "";
-    $table_config_name = $wpdb->prefix . "wc_addi_config";
-    $result = $wpdb->get_results($wpdb->prepare("select * from {$table_config_name} where element = %s", "widget"));
-    $position = "";
+    $result = null;
 
-    $resultV = $wpdb->get_results($wpdb->prepare("select * from {$table_config_name} where element = %s", "widget_position"));
+    try {
+        // Get widget styles from custom table
+        $table_config_name = $wpdb->prefix . "wc_addi_config";
+        
+        // Check if table exists
+        $is_table_missing = !$wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(1) FROM information_schema.tables WHERE table_schema = %s AND table_name = %s",
+            DB_NAME,
+            $wpdb->prefix . 'wc_addi_config'
+        ));
 
-    if (isset ($resultV) && count($resultV) > 0) {
-
-        foreach ($resultV as $itemV) {
-            $newPosition = $itemV->value;
-            $position = $newPosition;
+        if ($is_table_missing) {
+            $logger->error('Addi config table does not exist: ' . $table_config_name);
+            return;
         }
 
-    } else {
-        $wpdb->insert($table_config_name, array('element' => 'widget_position', 'value' => 'woocommerce_before_add_to_cart_form'));
-
-        $position = "woocommerce_before_add_to_cart_form";
+        $result = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM {$table_config_name} WHERE element = %s",
+            "widget"
+        ));
+        
+        if ($wpdb->last_error) {
+            $logger->error('Error fetching widget styles: ' . $wpdb->last_error);
+        }
+        
+    } catch (Exception $e) {
+        $logger->error('Exception fetching widget styles: ' . $e->getMessage());
     }
 
+    // Get widget position from WooCommerce settings
+    $gateways = WC()->payment_gateways->payment_gateways();
+    $addi_gateway = isset($gateways['addi']) ? $gateways['addi'] : null;
+
+    if ($addi_gateway->get_option('widget_enabled') !== 'yes') {
+        return;
+    }
+
+    $position = $addi_gateway ? $addi_gateway->getConfWidgetPosition() : 'woocommerce_single_product_summary';
 
     if ($position === $argPosition) {
 
@@ -392,15 +437,15 @@ function addi_before_add_to_cart_form($argPosition)
                         if ($product->is_on_sale() && $product->get_sale_price() !== "") {
                             //print_r('step 1');
                             $product_price = 'incl' === $tax_display_mode ? wc_get_price_including_tax($product, array('price' => $product->get_sale_price())) : wc_get_price_excluding_tax($product, array('price' => $product->get_sale_price()));
-                            echo "<addi-product-widget country='" . $country . "' custom-widget-styles='" . $styles_to_json . "' price='" . $product_price . "' ally-slug='" . $slug . "'></addi-product-widget>";
+                            echo "<div style='float: none;margin:10px 0'><addi-product-widget country='" . $country . "' custom-widget-styles='" . $styles_to_json . "' price='" . $product_price . "' ally-slug='" . $slug . "'></addi-product-widget></div>";
                         } elseif ($getSalePriceFromPlugin !== "") {
                             //print_r('step 2');
                             //print_r($getSalePriceFromPlugin);
-                            echo "<addi-product-widget country='" . $country . "' custom-widget-styles='" . $styles_to_json . "' price='" . $getSalePriceFromPlugin . "' ally-slug='" . $slug . "'></addi-product-widget>";
+                            echo "<div style='float: none;margin:10px 0'><addi-product-widget country='" . $country . "' custom-widget-styles='" . $styles_to_json . "' price='" . $getSalePriceFromPlugin . "' ally-slug='" . $slug . "'></addi-product-widget></div>";
                         } else {
                             //print_r('step 3');
                             $product_price = 'incl' === $tax_display_mode ? wc_get_price_including_tax($product) : wc_get_price_excluding_tax($product);
-                            echo "<addi-product-widget country='" . $country . "' custom-widget-styles='" . $styles_to_json . "' price='" . $product_price . "' ally-slug='" . $slug . "'></addi-product-widget>";
+                            echo "<div style='float: none;margin:10px 0'><addi-product-widget country='" . $country . "' custom-widget-styles='" . $styles_to_json . "' price='" . $product_price . "' ally-slug='" . $slug . "'></addi-product-widget></div>";
                         }
                     }
 
@@ -415,48 +460,24 @@ function addi_before_add_to_cart_form($argPosition)
 }
 
 /**
- * Registering compatible options for addi widget rendering
+ * Register all available widget positions for Addi
  */
-$arg = "woocommerce_before_add_to_cart_form";
-add_action('woocommerce_before_add_to_cart_form', function () {
-    global $arg;
-    addi_before_add_to_cart_form($arg); }, 10);
-$arg2 = "woocommerce_before_single_product_summary";
-add_action('woocommerce_before_single_product_summary', function () {
-    global $arg2;
-    addi_before_add_to_cart_form($arg2); }, 10);
-$arg3 = "woocommerce_before_variations_form";
-add_action('woocommerce_before_variations_form', function () {
-    global $arg3;
-    addi_before_add_to_cart_form($arg3); }, 10);
-$arg4 = "woocommerce_before_single_variation";
-add_action('woocommerce_before_single_variation', function () {
-    global $arg4;
-    addi_before_add_to_cart_form($arg4); }, 10);
-$arg5 = "woocommerce_after_add_to_cart_button";
-add_action('woocommerce_after_add_to_cart_button', function () {
-    global $arg5;
-    addi_before_add_to_cart_form($arg5); }, 10);
-$arg6 = "woocommerce_after_variations_form";
-add_action('woocommerce_after_variations_form', function () {
-    global $arg6;
-    addi_before_add_to_cart_form($arg6); }, 10);
-$arg7 = "woocommerce_after_add_to_cart_form";
-add_action('woocommerce_after_add_to_cart_form', function () {
-    global $arg7;
-    addi_before_add_to_cart_form($arg7); }, 10);
-$arg8 = "woocommerce_product_meta_start";
-add_action('woocommerce_product_meta_start', function () {
-    global $arg8;
-    addi_before_add_to_cart_form($arg8); }, 10);
-$arg9 = "woocommerce_product_meta_end";
-add_action('woocommerce_product_meta_end', function () {
-    global $arg9;
-    addi_before_add_to_cart_form($arg9); }, 10);
-$arg10 = "woocommerce_share";
-add_action('woocommerce_share', function () {
-    global $arg10;
-    addi_before_add_to_cart_form($arg10); }, 10);
+function addi_register_widget_positions() {
+    $positions = array(
+        'woocommerce_before_add_to_cart_form',
+        'woocommerce_single_product_summary',
+        'woocommerce_after_add_to_cart_form',
+        'woocommerce_product_meta_start',
+        'woocommerce_product_meta_end'
+    );
+
+    foreach ($positions as $position) {
+        add_action($position, function() use ($position) {
+            addi_render_widget($position);
+        }, 10);
+    }
+}
+add_action('init', 'addi_register_widget_positions');
 
 /**
  * Load custom CSS and JavaScript.
@@ -465,30 +486,56 @@ add_action('wp_enqueue_scripts', 'addi_my_enqueue_scripts');
 
 function addi_my_enqueue_scripts()
 {
-    // Enqueue my scripts.
-    $home_url = wp_make_link_relative(home_url()) . '/';
-    $country = (get_locale() == 'pt_PT' || get_locale() == 'pt_BR') ? 'br' : 'co';
-    $is_product = json_encode(is_product());
+    // Get gateway instance to check settings
+    $gateways = WC()->payment_gateways->payment_gateways();
+    $addi_gateway = isset($gateways['addi']) ? $gateways['addi'] : null;
 
-    wp_register_script('widget-addi', 'https://s3.amazonaws.com/statics.addi.com/woocommerce/woocommerce-widget-wrapper-new.bundle.min.js', array(), null, true);
-    wp_enqueue_script('widget-addi', 'https://s3.amazonaws.com/statics.addi.com/woocommerce/woocommerce-widget-wrapper-new.bundle.min.js', array(), null, true);
+    // Only proceed if gateway exists, is enabled, and widget is enabled
+    if ($addi_gateway && $addi_gateway->get_option('enabled') == 'yes' && ($addi_gateway->get_option('widget_enabled') == 'yes' || $addi_gateway->get_option('home_banner_enabled') == 'yes')) {
 
-    wp_localize_script('widget-addi', 'addiParams', array(
-        'country' => $country,
-        'home_url' => $home_url,
-        'is_product' => $is_product
-    )
-    );
+        // Get test mode setting
+        $test_mode = $addi_gateway->getTestmode();
+
+        // Enqueue my scripts.
+        $home_url = wp_make_link_relative(home_url()) . '/';
+        $country = (get_locale() == 'pt_PT' || get_locale() == 'pt_BR') ? 'br' : 'co';
+        $is_product = json_encode(is_product());
+
+        // Choose script URL based on test mode
+        $script_url = $test_mode
+            ? 'https://s3.amazonaws.com/statics.addi.com/woocommerce/woocommerce-widget-wrapper.bundle-stag.min.js'
+            : 'https://s3.amazonaws.com/statics.addi.com/woocommerce/woocommerce-widget-wrapper-new.bundle.min.js';
+        
+        //TODO: Add test mode support when we finish the script for woocommerce in staging
+        //$script_url = 'https://s3.amazonaws.com/statics.addi.com/woocommerce/woocommerce-widget-wrapper-new.bundle.min.js';
+
+        wp_register_script('widget-addi', $script_url, array(), null, true);
+        wp_enqueue_script('widget-addi', $script_url, array(), null, true);
+        wp_localize_script('widget-addi', 'addiParams', array(
+                'country' => $country,
+                'home_url' => $home_url,
+                'is_product' => $is_product,
+                'testmode' => $test_mode
+            )
+        );
+    }
 
     // Amplitude
-    wp_enqueue_script('frontend-functions', plugins_url('/js/frontend-functions.js', __FILE__), array(), null, true);
-
+    wp_enqueue_script('frontend-functions', plugins_url('/js/frontend-functions.js', __FILE__), array('jquery'), null, true);
+    
+    // Localize the script with plugin URL for asset loading
+    wp_localize_script('frontend-functions', 'addiPlugin', array(
+        'url' => plugins_url('/', __FILE__)
+    ));
+    
     // Enqueue styles.
     wp_enqueue_style('widget-addi-style', plugins_url('/css/style.css', __FILE__));
     // Add filters to catch and modify the styles and scripts as they're loaded.
+
     // Running this filter after everything to prevent conflicts with other plugins
-    add_filter('script_loader_tag', __NAMESPACE__ . '\addi_my_add_attributes', 100, 2);
+    add_filter('script_loader_tag', __NAMESPACE__ . '\addi_add_home_banner', 100, 2);
 }
+
 
 /**
  * Custom status styles in admin site
@@ -503,58 +550,29 @@ add_action('admin_head', function () { ?>
 <?php });
 
 /**
- * Add attributes based on defined script/style handles.
+ * Add the home banner script
  */
-function addi_my_add_attributes($html, $handle): string
+function addi_add_home_banner($html, $handle): string
 {
-    //echo "<h3> " . $handle . "</h3>";
-    global $wpdb;
-    $table_config_name = $wpdb->prefix . "wc_addi_config";
-
-    switch ($handle) {
-        case 'widget-addi':
-            #TODO: Update this function to remove the query
-            $result = $wpdb->get_results($wpdb->prepare("select * from {$table_config_name} where element = %s", "widget_home"));
-            if (isset ($result) && count($result) > 0) {
-                foreach ($result as $item) {
-                    $newValue = $item->value;
-                    $split = explode("|", $newValue);
-                    $enabled = $split[0];
-                    $bannerType = $split[1];
-                    $elementReference = $split[2];
-                    $allySlug = $split[3];
-
-                    if ($enabled == 'yes') {
-
-                        if (isset ($elementReference) && $elementReference !== 'default') {
-                            $html = str_replace('></script>', ' data-banner-element-reference=' . $elementReference . ' data-ally-slug=' . $allySlug . ' data-banner-id=' . $bannerType . ' data-name=wooAddiHomeBanner data-show-banner=true></script>', $html);
-                        } else {
-                            $html = str_replace('></script>', ' data-banner-element-reference=' . $elementReference . ' data-ally-slug=' . $allySlug . ' data-name=wooAddiHomeBanner data-show-banner=true></script>', $html);
-                        }
-
-                    } else {
-                        $html = str_replace('></script>', ' data-ally-slug=' . $allySlug . ' data-name=wooAddiHomeBanner></script>', $html);
-                    }
-                }
-            } else {
-                $resultW = $wpdb->get_results($wpdb->prepare("select * from {$table_config_name} where element = %s", "widget"));
-
-                // verifying the integrity of the resulset, otherwise could throw an error.
-                if (isset ($resultW) && count($resultW) > 0) {
-
-                    foreach ($resultW as $item) {
-                        $newValue = $item->value;
-                        $split = explode("|", $newValue);
-                        $bol = $split[0];
-                        $slug = $split[1];
-
-                        $html = str_replace('></script>', ' data-ally-slug=' . $slug . ' data-name=wooAddiHomeBanner></script>', $html);
-                    }
-
-                }
-            }
-            //$html = str_replace( '></script>', ' data-banner-element-reference=#ms-masthead data-show-banner=true></script>', $html );
-            break;
+    $gateways = WC()->payment_gateways->payment_gateways();
+    $addi_options = isset($gateways['addi']) ? $gateways['addi'] : null;
+    if ($addi_options->get_option('enabled') == 'yes' && $addi_options->get_option('widget_slug') != '' && $addi_options->get_option('home_banner_enabled') == 'yes') {
+        switch ($addi_options->get_option('field_home_banner_position')) {
+            case 'on_header':
+                $data_element_reference = "header";
+                break;
+            case 'on_footer':
+                $data_element_reference = "#site-content";
+                break;
+            case 'custom':
+                $data_element_reference = $addi_options->get_option('element_reference');
+                break;
+        }
+        switch ($handle)     {
+            case 'widget-addi':
+                $html = str_replace('></script>', ' data-ally-slug="' . $addi_options->get_option('widget_slug') . '" data-name="wooAddiHomeBanner" data-show-banner="true" data-banner-element-reference=' . $data_element_reference . ' data-banner-id="' . $addi_options->get_option('field_home_banner_type') . '"></script>', $html);
+                break;
+        }
     }
     return $html;
 }
@@ -578,6 +596,10 @@ function addi_selectively_enqueue_admin_script()
     // loading js
     wp_register_script('addi-js', plugins_url('/js/functions.js', __FILE__), array(), null, true);
     wp_enqueue_script('addi-js');
+    // localize script
+    wp_localize_script('addi-js', 'addiPlugin', array(
+        'url' => plugins_url('/', __FILE__)
+    ));
     // Enqueue styles.
     wp_enqueue_style('addi-admin-style', plugins_url('/css/admin-style.css', __FILE__));
 
@@ -621,7 +643,22 @@ function verify_database()
 
         }
 
-        setcookie("database_validation", true, strtotime('+30 days'));
+        if (!headers_sent()) {
+            $secure = is_ssl();
+            $expire = time() + (30 * DAY_IN_SECONDS);
+            setcookie(
+                'database_validation',
+                'true',
+                [
+                    'expires' => $expire,
+                    'path' => COOKIEPATH,
+                    'domain' => COOKIE_DOMAIN,
+                    'secure' => $secure,
+                    'httponly' => true,
+                    'samesite' => 'Strict'
+                ]
+            );
+        }
     }
 }
 
@@ -1025,6 +1062,56 @@ function addi_order_refunded($order_id, $refund_id)
     }
 }
 
+// Custom function to declare compatibility with cart_checkout_blocks feature
+function declare_cart_checkout_blocks_compatibility() {
+    // Check if the required class exists
+    if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
+        // Declare compatibility for 'cart_checkout_blocks'
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('cart_checkout_blocks', __FILE__, true);
+    }
+}
+
+//Register addi as payment method on blocks
+function register_addi_payment_block() {
+    // Check if the required class exists
+    if ( ! class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
+        return;
+    }
+    // Include the custom Blocks Checkout class
+    require_once plugin_dir_path(__FILE__) . 'includes/class-wc-addi-gateway-block.php';
+    // Hook the registration function to the 'woocommerce_blocks_payment_method_type_registration' action
+    add_action(
+        'woocommerce_blocks_payment_method_type_registration',
+        function( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
+            // Register an instance of the addi block
+            $payment_method_registry->register( new WC_Addi_Gateway_Blocks );
+        }
+    );
+}
+
+function addi_register_id_number_field() {
+    woocommerce_register_additional_checkout_field(
+        array(
+            'id'            => 'addi/cedula-id',
+            'label'         => 'Número de documento (Cédula)',
+            'location'      => 'address',
+            'required'      => true,
+            'attributes'    => array(
+                'autocomplete'     => 'cedula-id',
+                'pattern'          => '^(?:[89]\d{8}|[12]\d{9}|\d{6,8})$',
+                'title'            => 'Número de documento (Cédula)',
+            ),
+        ),
+    );
+}
+
+// Hook the custom function to the 'before_woocommerce_init' action
+add_action('before_woocommerce_init', 'declare_cart_checkout_blocks_compatibility');
+// Hook the custom function to the 'woocommerce_blocks_loaded' action
+add_action( 'woocommerce_blocks_loaded', 'register_addi_payment_block' );
+// Hook for add the id number field for checkout blocks
+add_action('woocommerce_init', 'addi_register_id_number_field');
+
 function cancel_addi_order($order, $auth, $amount)
 {
     $cancel_order_params = [
@@ -1075,7 +1162,7 @@ function bnpn_new_title() {
         document.addEventListener('DOMContentLoaded', function () {
             //Function to update the label text without modify the logo
             function updatePaymentLabel() {
-                const label = document.querySelector('label[for="payment_method_addi"]');
+                const label = document.querySelector('label[for="payment_method_addi"]') || document.querySelector('span[for="payment_method_addi"]');
                 if (label) {
                     //Make sure the first text node on the label is the text we want to change to avoid changes in other part of the DOM
                     const firstChild = label.childNodes[0];

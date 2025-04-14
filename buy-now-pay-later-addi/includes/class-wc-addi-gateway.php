@@ -41,10 +41,10 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
     private $modalButtonBorderRadius;
     private $modalButtonBackgroundColor;
     private $modalButtonFontColor;
-    private $field_widget_position;
-    private $field_widget_type;
+    private $field_home_banner_position;
+    private $field_home_banner_type;
     private $element_reference;
-    private $widget_home_enabled;
+    private $home_banner_enabled;
     private $has_requested_amount;
 
     //Getters and setters
@@ -203,20 +203,20 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
         return $this->modalButtonFontColor;
     }
 
-    public function getFieldWidgetPosition() {
-        return $this->field_widget_position;
+    public function getFieldHomeBannerPosition() {
+        return $this->field_home_banner_position;
     }
 
-    public function getFieldWidgetType() {
-        return $this->field_widget_type;
+    public function getFieldHomeBannerType() {
+        return $this->field_home_banner_type;
     }
 
     public function getElementReference() {
         return $this->element_reference;
     }
 
-    public function getWidgetHomeEnabled() {
-        return $this->widget_home_enabled;
+    public function getHomeBannerEnabled() {
+        return $this->home_banner_enabled;
     }
 
     public function getHasRequestedAmount() {
@@ -377,20 +377,20 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
         $this->modalButtonFontColor = $modalButtonFontColor;
     }
 
-    public function setFieldWidgetPosition($field_widget_position) {
-        $this->field_widget_position = $field_widget_position;
+    public function setFieldHomeBannerPosition($field_home_banner_position) {
+        $this->field_home_banner_position = $field_home_banner_position;
     }
 
-    public function setFieldWidgetType($field_widget_type) {
-        $this->field_widget_type = $field_widget_type;
+    public function setFieldHomeBannerType($field_home_banner_type) {
+        $this->field_home_banner_type = $field_home_banner_type;
     }
 
     public function setElementReference($element_reference) {
         $this->element_reference = $element_reference;
     }
 
-    public function setWidgetHomeEnabled($widget_home_enabled) {
-        $this->widget_home_enabled = $widget_home_enabled;
+    public function setHomeBannerEnabled($home_banner_enabled) {
+        $this->home_banner_enabled = $home_banner_enabled;
     }
 
     public function setHasRequestedAmount($has_requested_amount) {
@@ -411,13 +411,13 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
         $background_color = get_background_color();
 
         //TODO: change this per version, this is meant to be used for observability
-        $this->version = '1.9.3';
+        $this->version = '2.0.0';
         // Define plugin attributes.
         $this->id = 'addi';
         $this->icon = strpos($background_color, '000') !== false ? plugins_url('../assets/ADDI_logo_white.png', __FILE__) : plugins_url('../assets/ADDI_logo.png', __FILE__);
         $this->has_fields = false;
         $this->method_title = _x('Addi', 'Addi', 'buy-now-pay-later-addi');
-        $this->method_description = __('Paga a cuotas - ADDI.', 'buy-now-pay-later-addi');
+        $this->method_description = __('Cuotas que se adaptan a ti - Addi.', 'buy-now-pay-later-addi');
 
         $this->supports = array(
             'products'
@@ -478,12 +478,13 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
         $this->modalButtonBackgroundColor = $this->get_option('modalButtonBackgroundColor');
         $this->modalButtonFontColor = $this->get_option('modalButtonFontColor');
 
-        //Widget Home properties
-        $this->field_widget_position = $this->get_option('field_widget_position');
-        $this->field_widget_type = $this->get_option('field_widget_type');
+        //Home banner properties
+        $this->field_home_banner_position = $this->get_option('field_home_banner_position');
+        $this->field_home_banner_type = $this->get_option('field_home_banner_type');
         $this->element_reference = $this->get_option('element_reference');
-        $this->widget_home_enabled = $this->get_option('widget_home_enabled');
+        $this->home_banner_enabled = $this->get_option('home_banner_enabled');
         $this->has_requested_amount = true;
+
         // action hook to update options to new payment gateway
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
 
@@ -514,20 +515,20 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
             //custom order status
             $customOrderStatus = $this->get_option('custom_order_status');
 
-            //Widget Home
-            $newFieldWidgetPosition = $this->get_option('field_widget_position');
-            $newFieldWidgetType = $this->get_option('field_widget_type');
+            //Home banner
+            $newFieldHomeBannerPosition = $this->get_option('field_home_banner_position');
+            $newFieldHomeBannerType = $this->get_option('field_home_banner_type');
             $newElementReference = $this->get_option('element_reference');
-            $newWidgetHomeEnabled = $this->get_option('widget_home_enabled');
-
+            $newHomeBannerEnabled = $this->get_option('home_banner_enabled');
+            
             $modalBadgeLogoStyleValue_ = 'false';
 
-            switch ($newFieldWidgetPosition) {
+            switch ($newFieldHomeBannerPosition) {
                 case 'on_header':
                     $newElementReference = 'header';
                     break;
                 case 'on_footer':
-                    $newElementReference = '#content';
+                    $newElementReference = 'main';
                     break;
             }
 
@@ -647,9 +648,9 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                 $resultH = $wpdb->get_results($wpdb->prepare("select * from {$table_config_name} where element = %s", "widget_home"));
 
                 if (isset ($resultH) && count($resultH) > 0) {
-                    $wpdb->update($table_config_name, array ('value' => $newWidgetHomeEnabled . '|' . $newFieldWidgetType . '|' . $newElementReference . '|' . $newSlug), array ('element' => 'widget_home'));
+                    $wpdb->update($table_config_name, array ('value' => $newHomeBannerEnabled . '|' . $newFieldHomeBannerType . '|' . $newElementReference . '|' . $newSlug), array ('element' => 'widget_home'));
                 } else {
-                    $wpdb->insert($table_config_name, array ('element' => 'widget_home', 'value' => $newWidgetHomeEnabled . '|' . $newFieldWidgetType . '|' . $newElementReference . '|' . $newSlug));
+                    $wpdb->insert($table_config_name, array ('element' => 'widget_home', 'value' => $newHomeBannerEnabled . '|' . $newFieldHomeBannerType . '|' . $newElementReference . '|' . $newSlug));
                 }
 
                 /** WIDGET HOME  **/
@@ -870,7 +871,12 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                                 return $fields;
                             });
                             // display notification
-                            wc_add_notice(__('Tu pago no fue aprobado. Por favor, inténtalo de nuevo.', 'buy-now-pay-later-addi'), 'error');
+                            $error_message = __('Tu pago no fue aprobado. Por favor, inténtalo de nuevo.', 'buy-now-pay-later-addi');
+                            if (wp_is_json_request()) {
+                                throw new Exception($error_message);
+                            } else {
+                                wc_add_notice($error_message, 'error');
+                            }
                         }
                     }
                 }
@@ -894,20 +900,47 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
      */
     public function init_form_fields()
     {
-
         global $woocommerce;
 
+        add_action('admin_footer', function() {
+            ?>
+            <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    // Only add class if we're in the Addi gateway settings
+                    if (window.location.search.indexOf('section=addi') !== -1) {
+                        $('table.form-table').attr('id', 'addi-settings-form');
+                    }
+                });
+            </script>
+            <?php
+        });
+
         $this->form_fields = array(
+            //General configuration
+            'hr1' => array(
+                'type' => 'hr',
+                'class' => 'hr-default',
+            ),
+            'addi_logo' => array(
+                'title' => __(' ', 'buy-now-pay-later-addi'),
+                'type' => 'text',
+                'class' => 'section-header',
+            ),
+            'addi_section_general_page' => array(
+                'title' => __('Configuración General', 'buy-now-pay-later-addi'),
+                'type' => 'text',
+                'class' => 'section-header',
+            ),
             'enabled' => array(
-                'title' => __('Habilitar/Deshabilitar', 'buy-now-pay-later-addi'),
-                'label' => __('Habilitar Addi', 'buy-now-pay-later-addi'),
+                'title' => __('Estado del Plugin', 'buy-now-pay-later-addi'),
+                'label' => __('Activar Addi', 'buy-now-pay-later-addi'),
                 'type' => 'checkbox',
-                'description' => '',
+                'description' => __('Activa o desactiva el plugin de Addi. Esta es la configuración principal que controla todas las funcionalidades.', 'buy-now-pay-later-addi'),
                 'default' => 'no'
             ),
             'allow_refunds' => array(
                 'title' => __('Cancelaciones automáticas', 'buy-now-pay-later-addi'),
-                'label' => __('Habilitar cancelaciones automáticas', 'buy-now-pay-later-addi'),
+                'label' => __('Activar cancelaciones automáticas', 'buy-now-pay-later-addi'),
                 'type' => 'checkbox',
                 'description' => '',
                 'default' => 'no'
@@ -916,34 +949,49 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                 'title' => __('Ally slug en ADDI', 'buy-now-pay-later-addi'),
                 'type' => 'text',
             ),
-            'hr3' => array(
+            'prod_client_id' => array(
+                'title' => 'Client ID',
+                'type' => 'text',
+                'default' => '',
+                'desc_tip' => __('Ingrese su "Client ID" proporcionado en el portal de aliados de Addi.', 'buy-now-pay-later-addi'),
+            ),
+            'prod_client_secret' => array(
+                'title' => 'Client Secret',
+                'type' => 'password',
+                'desc_tip' => __('Ingrese su "Client Secret" proporcionado en el portal de aliados de Addi.', 'buy-now-pay-later-addi'),
+            ),
+            'testmode' => array(
+                'title' => __('Modo de Pruebas', 'buy-now-pay-later-addi'),
+                'label' => __('Activar modo de pruebas', 'buy-now-pay-later-addi'),
+                'type' => 'checkbox',
+                'description' => __('Activa el ambiente de pruebas para realizar tests sin procesar pagos reales.', 'buy-now-pay-later-addi'),
+                'default' => 'no',
+                'desc_tip' => true,
+            ),
+            'logs' => array(
+                'title' => __('Logs', 'buy-now-pay-later-addi'),
+                'label' => __('Activar Logs', 'buy-now-pay-later-addi'),
+                'type' => 'checkbox',
+                'description' => __('Activa el registro de logs para depuración y monitoreo del plugin.', 'buy-now-pay-later-addi'),
+                'default' => 'no',
+            ),
+            //checkout settings
+            'hr2' => array(
                 'type' => 'hr',
                 'class' => 'hr-default',
             ),
             'addi_section_checkout_page' => array(
-                'title' => __('Checkout', 'buy-now-pay-later-addi'),
+                'title' => __('Configuración de Addi en el Checkout(Formulario de compra)', 'buy-now-pay-later-addi'),
                 'type' => 'text',
-                'class' => 'widget-section-header',
-            ),
-            'description' => array(
-                'title' => __('Descripción', 'buy-now-pay-later-addi'),
-                'type' => 'textarea',
-                'description' => __('Esta descricpión es visible en el checkout.', 'buy-now-pay-later-addi'),
-                'default' => __('<b>Finaliza tu compra con ADDI</b></br><b>Es simple, rápido y seguro</b></br><b>1.</b> Sin tarjeta de crédito y en minutos.</br><b>2.</b> Proceso 100% online y sin papeleo.</br><b>3.</b> Solo necesitas tu cédula y WhatsApp para aplicar.', 'buy-now-pay-later-addi'),
-                'desc_tip' => true,
+                'class' => 'section-header',
             ),
             'addi_sub_section_checkout_page' => array(
-                'title' => __('Información del checkout', 'buy-now-pay-later-addi'),
+                'title' => __('Campos Personalizados del Formulario de Pago', 'buy-now-pay-later-addi'),
                 'type' => 'text',
-                'class' => 'widget-section-header',
-            ),
-            'addi_sub_section_checkout_page' => array(
-                'title' => __('Información del checkout', 'buy-now-pay-later-addi'),
-                'type' => 'text',
-                'class' => 'widget-section-header',
+                'class' => 'section-header',
             ),
             'addi_description_checkout_page' => array(
-                'title' => __('Indícanos aquí el nombre con el que identificas cada uno de estos datos en tu checkout. Si no has configurado nada especial, déjalo en blanco.', 'buy-now-pay-later-addi'),
+                'title' => __('Si has personalizado los campos del formulario de pago, ingresa aquí los nombres de las etiquetas personalizadas. Si usas los campos estándar de WooCommerce, déjalos en blanco.', 'buy-now-pay-later-addi'),
                 'type' => 'text',
                 'class' => 'widget-description-header',
             ),
@@ -951,7 +999,7 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                 'title' => __('Campo Nombres', 'buy-now-pay-later-addi'),
                 'type' => 'text',
                 'default' => '',
-                'desc_tip' => __('En caso de tener un campo para el "Nombre" en el checkout de forma personalizada, escriba el nombre de la etiqueta(label) aquí. Si no lo tiene, déjelo en blanco.', 'buy-now-pay-later-addi'),
+                'desc_tip' => __('Si has personalizado el campo "Nombre" en el formulario de pago, ingresa aquí el nombre de la etiqueta (label). Si usas el campo estándar, déjalo en blanco.', 'buy-now-pay-later-addi'),
             ),
             'field_billing_last_name' => array(
                 'title' => __('Campo Apellidos', 'buy-now-pay-later-addi'),
@@ -989,102 +1037,136 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                 'default' => '',
                 'desc_tip' => __('En caso de tener un campo para el número de celular que ha sido personalizado, escriba el nombre de la etiqueta(label) aquí. Si no lo tiene, déjelo en blanco.', 'buy-now-pay-later-addi'),
             ),
-            'prod_client_id' => array(
-                'title' => 'Client ID',
-                'type' => 'text',
-                'default' => '',
-                'desc_tip' => __('Consulte su "Client ID" en el portal de aliados proporcionado por Addi.', 'buy-now-pay-later-addi'),
-            ),
-            'prod_client_secret' => array(
-                'title' => 'Client Secret',
-                'type' => 'password',
-                'desc_tip' => __('Consulte su "Client Secret" en el portal de aliados proporcionado por Addi.', 'buy-now-pay-later-addi'),
-            ),
-            'testmode' => array(
-                'title' => __('Ambiente pruebas', 'buy-now-pay-later-addi'),
-                'label' => __('Habilitar ambiente de pruebas', 'buy-now-pay-later-addi'),
-                'type' => 'checkbox',
-                'description' => __('Colocar este método de pago en ambiente de pruebas.', 'buy-now-pay-later-addi'),
-                'default' => 'no',
-                'desc_tip' => true,
-            ),
             'custom_order_status' => array(
-                'title' => __('Estados personalizados de Addi', 'buy-now-pay-later-addi'),
-                'label' => __('Habilitar los estados personalizados de Addi en los pedidos', 'buy-now-pay-later-addi'),
+                'title' => __('Estados de Pedido Personalizados', 'buy-now-pay-later-addi'),
+                'label' => __('Activar estados personalizados de Addi', 'buy-now-pay-later-addi'),
                 'type' => 'checkbox',
-                'description' => __('Esta opción cambiará los estados de los pedidos de compra cuando sean con Addi a transacciones aprobadas o no aprobadas.', 'buy-now-pay-later-addi'),
+                'description' => __('Al activar esta opción, los pedidos realizados con Addi mostrarán estados personalizados que indican si la transacción fue aprobada o rechazada.', 'buy-now-pay-later-addi'),
                 'default' => 'no',
+                'desc_tip' => false,
+            ),
+            'description' => array(
+                'title' => __('Descripción', 'buy-now-pay-later-addi'),
+                'class' => 'description-hidden',
+                'type' => 'textarea',
+                'description' => __('Esta descricpión es visible en el checkout.', 'buy-now-pay-later-addi'),
+                'default' => __('<b>Finaliza tu compra con ADDI</b></br><b>Es simple, rápido y seguro</b></br><b>1.</b> Sin tarjeta de crédito y en minutos.</br><b>2.</b> Proceso 100% online y sin papeleo.</br><b>3.</b> Solo necesitas tu cédula y WhatsApp para aplicar.', 'buy-now-pay-later-addi'),
                 'desc_tip' => true,
             ),
-            'logs' => array(
-                'title' => __('Logs', 'buy-now-pay-later-addi'),
-                'label' => __('Habilitar Logs', 'buy-now-pay-later-addi'),
-                'type' => 'checkbox',
-                'description' => '',
-                'default' => 'no',
-            ),
-            'hr1' => array(
+            //Checkout descripton
+            'hr5' => array(
                 'type' => 'hr',
                 'class' => 'hr-default',
             ),
-            'addi_section_product_page' => array(
-                'title' => __('Página de producto', 'buy-now-pay-later-addi'),
+            'section_checkout_description' => array(
+                'title' => __('Vista previa de la descripción del checkout', 'buy-now-pay-later-addi'),
                 'type' => 'text',
-                'class' => 'widget-section-header',
+                'class' => 'section-header',
+            ),
+            'description_checkout_page' => array(
+                'title' => __('Dependiendo del producto que tengas activo te saldrá una de las siguientes descripciones: ', 'buy-now-pay-later-addi'),
+                'type' => 'text',
+                'class' => 'widget-description-header',
+            ),
+            //Home banner settings
+            'hr4' => array(
+                'type' => 'hr',
+                'class' => 'hr-default',
+            ),
+            'section_home_banner' => array(
+                'title' => __('Banner en la pagina de inicio', 'buy-now-pay-later-addi'),
+                'type' => 'text',
+                'class' => 'section-header',
+            ),
+            'home_banner_enabled' => array(
+                'title' => __('Estado del Banner', 'buy-now-pay-later-addi'),
+                'label' => __('Activar banner promocional', 'buy-now-pay-later-addi'),
+                'type' => 'checkbox',
+                'default' => 'no',
+                'desc_tip' => true,
+            ),
+            'field_home_banner_position' => array(
+                'title' => __('Ubicación del Banner', 'buy-now-pay-later-addi'),
+                'type' => 'select',
+                'default' => 'on_header',
+                'desc_tip' => false,
+                'options' => array(
+                    'on_header' => 'Parte superior del Inicio',
+                    'on_footer' => 'Parte inferior del Inicio',
+                    'custom' => 'Personalizado',
+                )
+            ),
+            'element_reference' => array(
+                'type' => 'text',
+                'default' => '',
+                'desc_tip' => false,
+                'description' => __('Para una ubicación personalizada, ingresa el ID o clase CSS del elemento donde deseas mostrar el banner. Por ejemplo: #miId o .miClase', 'buy-now-pay-later-addi'),
+            ),
+            'field_home_banner_type' => array(
+                'title' => __('Estilo del Banner', 'buy-now-pay-later-addi'),
+                'type' => 'select',
+                'default' => 'banner_02',
+                'desc_tip' => false,
+                'options' => array(
+                    'default' => 'default',
+                    'banner_01' => 'banner_01',
+                    'banner_02' => 'banner_02',
+                    'banner_03' => 'banner_03',
+                )
+            ),
+            //Widget settings
+            'hr3' => array(
+                'type' => 'hr',
+                'class' => 'hr-default',
+            ),
+            'section_widget' => array(
+                'title' => __('Widget de Addi en Página de Producto', 'buy-now-pay-later-addi'),
+                'type' => 'text',
+                'class' => 'section-header',
             ),
             'widget_enabled' => array(
-                'title' => __('Widget', 'buy-now-pay-later-addi'),
-                'label' => __('Habilitar widget', 'buy-now-pay-later-addi'),
+                'title' => __('Estado del Widget', 'buy-now-pay-later-addi'),
+                'label' => __('Activar widget', 'buy-now-pay-later-addi'),
                 'type' => 'checkbox',
-                'description' => __('Habilitar widget ADDI en la página de producto.', 'buy-now-pay-later-addi'),
+                'description' => __('Muestra el widget de ADDI en la página de producto.', 'buy-now-pay-later-addi'),
                 'default' => 'no',
             ),
             'conf_widget_position' => array(
                 'title' => __('Posición del widget', 'buy-now-pay-later-addi'),
                 'type' => 'select',
-                'default' => 'woocommerce_before_add_to_cart_form',
+                'default' => 'woocommerce_single_product_summary',
                 'desc_tip' => false,
                 'options' => array(
-                    'woocommerce_before_single_product_summary' => __('Encima de título de producto', 'buy-now-pay-later-addi'),
-                    'woocommerce_before_add_to_cart_form' => __('Default', 'buy-now-pay-later-addi'),
-                    'woocommerce_before_variations_form' => __('Encima de formulario de variaciones de precio', 'buy-now-pay-later-addi'),
-                    'woocommerce_before_single_variation' => __('Encima de precio variación', 'buy-now-pay-later-addi'),
-                    'woocommerce_after_add_to_cart_button' => __('Debajo de botón añadir al carrito', 'buy-now-pay-later-addi'),
-                    'woocommerce_after_variations_form' => __('Debajo de formulario de variaciones de precio', 'buy-now-pay-later-addi'),
-                    'woocommerce_after_add_to_cart_form' => __('Debajo de formulario de agregar producto', 'buy-now-pay-later-addi'),
-                    'woocommerce_product_meta_start' => __('Encima de información extra', 'buy-now-pay-later-addi'),
-                    'woocommerce_product_meta_end' => __('Debajo de información extra', 'buy-now-pay-later-addi'),
-                    'woocommerce_share' => __('Encima de redes sociales', 'buy-now-pay-later-addi'),
+                    'woocommerce_single_product_summary' => __('Ubicación predeterminada (Debajo del precio del producto)', 'buy-now-pay-later-addi'),
+                    'woocommerce_before_add_to_cart_form' => __('Arriba del formulario de compra', 'buy-now-pay-later-addi'),
+                    'woocommerce_after_add_to_cart_form' => __('Debajo del formulario de compra', 'buy-now-pay-later-addi'),
+                    'woocommerce_product_meta_start' => __('Arriba de la información adicional', 'buy-now-pay-later-addi'),
+                    'woocommerce_product_meta_end' => __('Debajo de la información adicional', 'buy-now-pay-later-addi'),
                 )
             ),
-            'widget_section_widget_header' => array(
-                'title' => __('Configuración Estilos Widget', 'buy-now-pay-later-addi'),
+            'section_widget_header' => array(
+                'title' => __('Configuración de estilos del widget', 'buy-now-pay-later-addi'),
                 'type' => 'text',
-                'class' => 'widget-section-header',
-            ),
-            'widget_section_widget_header' => array(
-                'title' => __('Configuración Estilos Widget', 'buy-now-pay-later-addi'),
-                'type' => 'text',
-                'class' => 'widget-section-header',
+                'class' => 'section-header',
             ),
             'widgetBorderColor' => array(
-                'title' => __('Color del borde', 'buy-now-pay-later-addi'),
+                'title' => __('Color del borde del widget', 'buy-now-pay-later-addi'),
                 'type' => 'text',
-                'description' => __('Indica el color (palabra o código HEX) para el borde del widget de ADDI que aparece en la página de producto.', 'buy-now-pay-later-addi'),
+                'description' => __('Ingresa el color del borde del widget (nombre del color o código HEX).', 'buy-now-pay-later-addi'),
                 'default' => 'black',
                 'desc_tip' => true,
             ),
             'widgetBorderRadius' => array(
-                'title' => __('Curvatura del borde', 'buy-now-pay-later-addi'),
+                'title' => __('Radio del Borde', 'buy-now-pay-later-addi'),
                 'type' => 'text',
-                'description' => __('Indica el tamaño de la curvatura para el borde del widget de ADDI que aparece en la página de producto.', 'buy-now-pay-later-addi'),
+                'description' => __('Ingresa el radio de curvatura del borde del widget (ejemplo: 5px).', 'buy-now-pay-later-addi'),
                 'default' => '5px',
                 'desc_tip' => true,
             ),
             'widgetFontColor' => array(
-                'title' => __('Color de fuente', 'buy-now-pay-later-addi'),
+                'title' => __('Color del Texto', 'buy-now-pay-later-addi'),
                 'type' => 'text',
-                'description' => __('Indica el color (palabra o código HEX) para la fuente del widget de ADDI que aparece en la página de producto.', 'buy-now-pay-later-addi'),
+                'description' => __('Ingresa el color del texto del widget (nombre del color o código HEX).', 'buy-now-pay-later-addi'),
                 'default' => 'black',
                 'desc_tip' => true,
             ),
@@ -1096,44 +1178,45 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                 'desc_tip' => true,
             ),
             'widgetFontSize' => array(
-                'title' => __('Tamaño de fuente', 'buy-now-pay-later-addi'),
+                'title' => __('Tamaño del Texto', 'buy-now-pay-later-addi'),
                 'type' => 'text',
-                'description' => __('Indica el tamaño de fuente del widget de ADDI que aparece en la página de producto.', 'buy-now-pay-later-addi'),
+                'description' => __('Ingresa el tamaño del texto del widget (ejemplo: 14px).', 'buy-now-pay-later-addi'),
                 'default' => '14px',
                 'desc_tip' => true,
             ),
             'widgetBadgeBackgroundColor' => array(
-                'title' => __('Color de fondo ícono ADDI', 'buy-now-pay-later-addi'),
+                'title' => __('Color de Fondo del Logo', 'buy-now-pay-later-addi'),
                 'type' => 'text',
-                'description' => __('Indica el color del fondo del cuadro con el logo de ADDI para el widget de ADDI que aparece en la página de producto.', 'buy-now-pay-later-addi'),
+                'description' => __('Ingresa el color de fondo para el contenedor del logo de ADDI (nombre del color o código HEX).', 'buy-now-pay-later-addi'),
                 'default' => '#fff',
                 'desc_tip' => true,
             ),
             'widgetInfoBackgroundColor' => array(
-                'title' => __('Color de fondo widget', 'buy-now-pay-later-addi'),
+                'title' => __('Color de Fondo del Widget', 'buy-now-pay-later-addi'),
                 'type' => 'text',
-                'description' => __(' Indica el color del fondo del widget de ADDI que aparece en la página de producto.', 'buy-now-pay-later-addi'),
+                'description' => __('Ingresa el color de fondo para todo el widget (nombre del color o código HEX).', 'buy-now-pay-later-addi'),
                 'default' => 'transparent',
                 'desc_tip' => true,
             ),
             'widgetMargin' => array(
-                'title' => __('Margen', 'buy-now-pay-later-addi'),
+                'title' => __('Márgenes', 'buy-now-pay-later-addi'),
                 'type' => 'text',
-                'description' => __('Indica el tamaño de margen para el widget de ADDI que aparece en la página de producto.', 'buy-now-pay-later-addi'),
+                'description' => __('Ingresa el espacio exterior del widget (ejemplo: 10px o 1em).', 'buy-now-pay-later-addi'),
                 'default' => '0',
                 'desc_tip' => true,
             ),
             'modalBadgeLogoStyle' => array(
-                'title' => __('Logo ADDI en blanco', 'buy-now-pay-later-addi'),
+                'title' => __('Usar Logo en Color Blanco', 'buy-now-pay-later-addi'),
                 'label' => __(' ', 'buy-now-pay-later-addi'),
                 'type' => 'checkbox',
                 'default' => 'no',
                 'desc_tip' => false,
             ),
+            //Modal configuration
             'widget_section_modal_header' => array(
                 'title' => __('Configuración Estilos Modal', 'buy-now-pay-later-addi'),
                 'type' => 'text',
-                'class' => 'widget-section-header',
+                'class' => 'section-header',
             ),
             'modalBackgroundColor' => array(
                 'title' => __('Color de fondo', 'buy-now-pay-later-addi'),
@@ -1150,14 +1233,14 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                 'desc_tip' => true,
             ),
             'modalPriceColor' => array(
-                'title' => __('Color precio', 'buy-now-pay-later-addi'),
+                'title' => __('Color del precio', 'buy-now-pay-later-addi'),
                 'type' => 'text',
                 'description' => __('Indica el color (palabra o código HEX) para el precio en el modal.', 'buy-now-pay-later-addi'),
                 'default' => '#3c65ec',
                 'desc_tip' => true,
             ),
             'modalBadgeBackgroundColor' => array(
-                'title' => __('Color fondo banner', 'buy-now-pay-later-addi'),
+                'title' => __('Color de fondo del banner', 'buy-now-pay-later-addi'),
                 'type' => 'text',
                 'description' => __('Indica el color (palabra o código HEX) para el fondo del banner de tasa de interés.', 'buy-now-pay-later-addi'),
                 'default' => '#4cbd99',
@@ -1171,21 +1254,21 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                 'desc_tip' => true,
             ),
             'modalBadgeFontColor' => array(
-                'title' => __('Color fuente banner', 'buy-now-pay-later-addi'),
+                'title' => __('Color del texto del banner', 'buy-now-pay-later-addi'),
                 'type' => 'text',
                 'description' => __('Indica el color (palabra o código HEX) para la fuente del banner de tasa de interés.', 'buy-now-pay-later-addi'),
                 'default' => 'white',
                 'desc_tip' => true,
             ),
             'modalCardColor' => array(
-                'title' => __('Color fondo modal', 'buy-now-pay-later-addi'),
+                'title' => __('Color de fondo del modal', 'buy-now-pay-later-addi'),
                 'type' => 'text',
                 'description' => __('Indica el color (palabra o código HEX) para el fondo del modal. ', 'buy-now-pay-later-addi'),
                 'default' => 'white',
                 'desc_tip' => true,
             ),
             'modalButtonBorderColor' => array(
-                'title' => __('Color borde botón', 'buy-now-pay-later-addi'),
+                'title' => __('Color del borde del botón', 'buy-now-pay-later-addi'),
                 'type' => 'text',
                 'description' => __(' Indica el color (palabra o código HEX) para el borde del botón del modal.', 'buy-now-pay-later-addi'),
                 'default' => '#4cbd99',
@@ -1199,61 +1282,18 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                 'desc_tip' => true,
             ),
             'modalButtonBackgroundColor' => array(
-                'title' => __('Color de fondo botón', 'buy-now-pay-later-addi'),
+                'title' => __('Color de fondo del botón', 'buy-now-pay-later-addi'),
                 'type' => 'text',
                 'description' => __('Indica el color (palabra o código HEX) para el fondo del botón.', 'buy-now-pay-later-addi'),
                 'default' => 'transparent',
                 'desc_tip' => true,
             ),
             'modalButtonFontColor' => array(
-                'title' => __('Color de fondo fuente botón', 'buy-now-pay-later-addi'),
+                'title' => __('Color del texto del botón', 'buy-now-pay-later-addi'),
                 'type' => 'text',
-                'description' => __('Indica el color (palabra o código HEX) para el fondo de la fuente del botón.', 'buy-now-pay-later-addi'),
+                'description' => __('Indica el color (nombre o código HEX) para el texto del botón.', 'buy-now-pay-later-addi'),
                 'default' => '#4cbd99',
                 'desc_tip' => true,
-            ),
-            'hr2' => array(
-                'type' => 'hr',
-                'class' => 'hr-default',
-            ),
-            'widget_section_widget_home' => array(
-                'title' => __('Home banner', 'buy-now-pay-later-addi'),
-                'type' => 'text',
-                'class' => 'widget-section-header',
-            ),
-            'widget_home_enabled' => array(
-                'title' => __('Habilitar/deshabilitar', 'buy-now-pay-later-addi'),
-                'label' => __('Habilitar home banner', 'buy-now-pay-later-addi'),
-                'type' => 'checkbox',
-                'default' => 'no',
-                'desc_tip' => true,
-            ),
-            'field_widget_position' => array(
-                'title' => __('Posición del home banner', 'buy-now-pay-later-addi'),
-                'type' => 'select',
-                'default' => 'on_header',
-                'desc_tip' => false,
-                'options' => array(
-                    'on_header' => 'Debajo de header',
-                    'on_footer' => 'Encima de footer',
-                    'custom' => 'Personalizado',
-                ) // array of options for select/multiselects only
-            ),
-            'element_reference' => array(
-                'type' => 'text',
-                'default' => '',
-            ),
-            'field_widget_type' => array(
-                'title' => __('Tipo de home banner', 'buy-now-pay-later-addi'),
-                'type' => 'select',
-                'default' => 'banner_02',
-                'desc_tip' => false,
-                'options' => array(
-                    'default' => 'default',
-                    'banner_01' => 'banner_01',
-                    'banner_02' => 'banner_02',
-                    'banner_03' => 'banner_03',
-                ) // array of options for select/multiselects only
             ),
         );
 
@@ -1377,14 +1417,23 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
             });
         }
     }
-
+    
     /**
      * You will need it if you want your custom credit card form, Step 4 is about it
      */
-    public function payment_fields()
-    {
+    public function payment_fields(){
+
+        // Only show payment fields on checkout page
+        if (!is_checkout() || is_cart()) {
+            return;
+        }
+        
         global $woocommerce;
         global $wp;
+
+        $api_app_url = ''; // Default initialization
+        $options_api = []; // Initialize as empty array
+
         if (isset($woocommerce->cart->total)) {
             if ($woocommerce->cart->total !== null) {
                 $totals = $woocommerce->cart->total;
@@ -1552,8 +1601,8 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                 "/" .
                 $template_version .
                 ".php";
-            $min_amount_int = $body_api_response["minAmount"];
-            $max_amount_int = $body_api_response["maxAmount"];
+            $min_amount_int = isset($body_api_response["minAmount"]) ? $body_api_response["minAmount"] : 0;
+            $max_amount_int = isset($body_api_response["maxAmount"]) ? $body_api_response["maxAmount"] : 0;
 
             if ($country == "br") {
                 $params = [
@@ -1577,8 +1626,15 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                     "max_amount_int" => $max_amount_int,
                 ];
             }
-            echo $this->render_template($template, $params);
+            $from_blocks = class_exists('Automattic\\WooCommerce\\Blocks\\Payments\\Integrations\\AbstractPaymentMethodType') && function_exists('wc_get_page_id') && has_block('woocommerce/checkout', wc_get_page_id('checkout'));
+            //echo $this->render_template($template, $params);
             echo $this->healthcheck_validation($widgetversion);
+            
+            if($from_blocks){
+                return $this->render_template($template, $params);
+            }else{
+                echo $this->render_template($template, $params);
+            }
         } else {
             $error_msg = $api_response->get_error_message();
             AddiLogger::logger_dna(
@@ -1652,8 +1708,8 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
     }
 
     /*
-     * We're processing the payments here
-     */
+    * We're processing the payments here
+    */
     public function process_payment($order_id)
     {
 
@@ -1663,7 +1719,7 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
         // LOAD THE WC LOGGER
         $logger = wc_get_logger();
 
-        // we need it to get any order details
+        //we need it to get any order details
         $order = wc_get_order($order_id);
         $_SESSION["order_id_process_payment"] = $order_id;
 
@@ -1792,7 +1848,29 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
             }
 
             $client->idType = (get_locale() == 'pt_PT' || get_locale() == 'pt_BR') ? 'CPF' : 'CC';
-            $client->idNumber = $id;
+
+            $from_blocks = class_exists('Automattic\\WooCommerce\\Blocks\\Payments\\Integrations\\AbstractPaymentMethodType') && function_exists('wc_get_page_id') && has_block('woocommerce/checkout', wc_get_page_id('checkout'));
+            
+            if($from_blocks){
+                $request = json_decode(file_get_contents('php://input'), true);
+                if (isset($request['billing_address']['addi/cedula-id'])) {
+                    $client->idNumber = sanitize_text_field($request['billing_address']['addi/cedula-id']);
+                }else if (isset($request['shipping_address']['addi/cedula-id'])) {
+                    $client->idNumber = sanitize_text_field($request['shipping_address']['addi/cedula-id']);
+                }else{
+                    error_log('No se recibió la cédula en el checkout.');
+                    $error_message = __('No se recibió la cédula en el checkout.', 'buy-now-pay-later-addi');
+
+                    if (wp_is_json_request()) {
+                        throw new Exception($error_message);
+                    } else {
+                        wc_add_notice($error_message, 'error');
+                        return;
+                    }
+                }
+            } else {
+                $client->idNumber = $id;
+            }
             $client->firstName = isset($this->field_billing_first_name) && ($this->field_billing_first_name !== '') ?
                 WC()->checkout->get_value('' . $this->field_billing_first_name . '') :
                 (($order->get_shipping_first_name() !== "" && $order->get_shipping_first_name() !== " ") ?
@@ -1899,23 +1977,41 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                     );
                 } catch (Exception $e) {
                     // If something go wrong, show notification
-                    wc_add_notice(__('Error procesando el pedido. Por favor, inténtalo de nuevo.', 'buy-now-pay-later-addi'), 'error');
-                    return;
+                    $error_message = __('Error procesando el pedido. Por favor, inténtalo de nuevo.', 'buy-now-pay-later-addi');
+
+                    if (wp_is_json_request()) {
+                        throw new Exception($error_message);
+                    } else {
+                        wc_add_notice($error_message, 'error');
+                        return;
+                    }
                 }
 
             } else {
                 // If something go wrong, show notification
-                wc_add_notice(__('Error procesando el pedido. Documento de identidad inválido. Por favor, inténtalo de nuevo.', 'buy-now-pay-later-addi'), 'error');
-                return;
+                $error_message = __('Error procesando el pedido. Documento de identidad inválido. Por favor, inténtalo de nuevo.', 'buy-now-pay-later-addi');
+
+                if (wp_is_json_request()) {
+                    throw new Exception($error_message);
+                } else {
+                    wc_add_notice($error_message, 'error');
+                    return;
+                }
             }
 
             return;
         } else {
             // If something go wrong, show notification
-            $this -> testmode ? 
-            wc_add_notice(__('Error procesando el pedido. Las credenciales para Addi son inválidas. Además, el modo de pruebas está ACTIVO.', 'buy-now-pay-later-addi'), 'error') : 
-            wc_add_notice(__('Error procesando el pedido. Las credenciales para Addi son inválidas. Por favor, verifica que sean correctas e inténtalo nuevamente.', 'buy-now-pay-later-addi'), 'error');
-            return;
+            $error_message = $this->testmode ?
+                __('Error procesando el pedido. Las credenciales para Addi son inválidas. Además, el modo de pruebas está ACTIVO.', 'buy-now-pay-later-addi') :
+                __('Error procesando el pedido. Las credenciales para Addi son inválidas. Por favor, verifica que sean correctas e inténtalo nuevamente.', 'buy-now-pay-later-addi');
+
+            if (wp_is_json_request()) {
+                throw new Exception($error_message);
+            } else {
+                wc_add_notice($error_message, 'error');
+                return;
+            }
         }
     }
 
@@ -1954,10 +2050,22 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
         header('Accept: application/json');
 
         if ($this->logs == 'yes') {
-            $logger->info('auth user ' . $_SERVER['PHP_AUTH_USER'] . '', array('source' => 'auth-log'));
-            $logger->info('auth PW ' . $_SERVER['PHP_AUTH_PW'] . '', array('source' => 'auth-log'));
-            $logger->info('remote User ' . $_SERVER['REMOTE_USER'] . '', array('source' => 'auth-log'));
-            $logger->info('Server Auth ' . $_SERVER['HTTP_AUTHORIZATION'] . '', array('source' => 'auth-log'));
+            // Log authentication details if they exist
+            if (isset($_SERVER['PHP_AUTH_USER'])) {
+                $logger->info('auth user: ' . $_SERVER['PHP_AUTH_USER'], array('source' => 'auth-log'));
+            }
+            
+            if (isset($_SERVER['PHP_AUTH_PW'])) {
+                $logger->info('auth PW present', array('source' => 'auth-log')); // Don't log the actual password
+            }
+            
+            if (isset($_SERVER['REMOTE_USER'])) {
+                $logger->info('remote User: ' . $_SERVER['REMOTE_USER'], array('source' => 'auth-log'));
+            }
+            
+            if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+                $logger->info('Server Auth present', array('source' => 'auth-log')); // Don't log the full authorization header
+            }
         }
 
         // verify if user/password are correct
@@ -2016,7 +2124,7 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                         }
 
                         // Reduce stock of product in the store
-                        $order->reduce_order_stock();
+                        wc_reduce_stock_levels($order->get_id());
                         $order->set_transaction_id($callback_applicationId);
                         $order->save();
 

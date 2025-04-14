@@ -1,12 +1,12 @@
-=== Buy Now Pay Later - ADDI ===
+=== Addi - Cuotas que se adaptan a ti ===
 Contributors: pabloandresm936, christian7sr
 Author: Addi
 Author URI: https://co.addi.com/
-Tags: comments, spam
+Tags: woocommerce, addi, credit, payment, payment-gateway, PSE, bnpn, bnpl
 Requires at least: 5.2
-Tested up to: 6.5
+Tested up to: 6.7
 Requires PHP: 7.0
-Stable tag: 1.9.3
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,12 +14,11 @@ Addi te permite generar creditos en linea siendo una nueva pasarela de pago de W
 
 == Description ==
 
-Ofrece a tus clientes la posibilidad de comprar a cuotas lo que quieran, cuando quieran, pagando después con Addi. En minutos. SIN INTERESES*. Sin complicaciones.
+Ofrece a tus clientes la posibilidad de comprar a credito o debito lo que quieran, cuando quieran, pagando después con Addi. En minutos sin tarjetas y sin complicaciones.
 
 == Installation ==
 
-
-1. Suba el archivo "woocommerce-gateway-addi" al directorio"/wp-content/plugins/", o suba el archivo comprimido buy-now-pay-later-addi.zip en el cargador de archivos.
+1. Suba el archivo comprimido buy-now-pay-later-addi.zip en el cargador de archivos.
 2. Active el plugin a través del menú "Plugins" de WordPress.
 
 Nota: Para garantizar que recibes correctamente la respuesta por parte de ADDI, te invitamos a verificar lo siguiente:
@@ -36,6 +35,18 @@ Nota: Para garantizar que recibes correctamente la respuesta por parte de ADDI, 
 3. El nuevo método de pago se mostrará en el checkout de tu sitio!.
 
 == Changelog ==
+= 2.0.0 2025-03-17 =
+* Fixed the home banner issue.
+* Fixed the widget display issue when the plugin is disabled.
+* Fixed the widget position issue.
+* Improved configuration options.
+* Add settings button on Plugins installed screen.
+* Fixed bug where the widget and banner did not activate independently.
+* Updated logos, colors, fonts, and text to align with the current brand.
+* Fixed responsive design issues.
+* Fix wrong cookies setting.
+* Add compatibility with checkout blocks.
+
 = 1.9.3 2024-08-22 =
 * Fixed an incorrect health check validation.
 * Improved error messages for credentials.

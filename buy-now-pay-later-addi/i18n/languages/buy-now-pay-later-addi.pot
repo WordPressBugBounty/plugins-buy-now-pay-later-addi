@@ -1,4 +1,4 @@
-# Copyright (C) 2021 Addi
+# Copyright (C) 2025 Addi
 # This file is distributed under the same license as the Buy Now Pay Later - ADDI plugin.
 #, fuzzy
 msgid ""
@@ -25,7 +25,7 @@ msgid "https://co.addi.com/"
 msgstr "https://br.addi.com/"
 
 #. Description of the plugin
-msgid "Ofrece a tus clientes la posibilidad de comprar a cuotas lo que quieran, cuando quieran, pagando después con <strong>Addi</strong>. En minutos. SIN INTERESES. Sin complicaciones."
+msgid "Ofrece a tus clientes la posibilidad de comprar a cuotas lo que quieran, cuando quieran, pagando después con <strong>Addi</strong>. En minutos y sin complicaciones."
 msgstr "Ofereça aos seus clientes a possibilidade de parcelarem SEM JUROS o que quiserem e quando quiserem, pagando depois com <strong>Addi</strong>. Parcelamento rápido, em minutos. Como deve ser."
 
 #. Author of the plugin
@@ -60,7 +60,7 @@ msgid "Pago a cuotas - ADDI."
 msgstr "PIX parcelado - ADDI."
 
 #: addi-gateway.php:927
-msgid "Paga a cuotas"
+msgid "Compra ahora y paga después"
 msgstr "PIX parcelado sem juros"
 
 #: addi-gateway.php:1376
