@@ -5,7 +5,7 @@
  * Description: Ofrece a tus clientes la posibilidad de comprar a cuotas lo que quieran, cuando quieran, pagando después con <strong>Addi</strong>. En minutos y sin complicaciones.
  * Author: Addi
  * Author URI: https://co.addi.com/
- * Version: 2.0.0
+ * Version: 2.0.1
  * Requires at least: 5.2
  * Requires PHP:      7.0
  * License: GPL v2 or later
@@ -1090,19 +1090,49 @@ function register_addi_payment_block() {
 }
 
 function addi_register_id_number_field() {
-    woocommerce_register_additional_checkout_field(
-        array(
-            'id'            => 'addi/cedula-id',
-            'label'         => 'Número de documento (Cédula)',
-            'location'      => 'address',
-            'required'      => true,
-            'attributes'    => array(
-                'autocomplete'     => 'cedula-id',
-                'pattern'          => '^(?:[89]\d{8}|[12]\d{9}|\d{6,8})$',
-                'title'            => 'Número de documento (Cédula)',
-            ),
+    $field_options = array(
+        'id'            => 'addi/cedula-id',
+        'label'         => 'Número de documento (Cédula)',
+        'location'      => 'address',
+        'required'      => true,
+        'attributes'    => array(
+            'autocomplete'     => 'cedula-id',
+            'pattern'          => '^(?:[89]\d{8}|[12]\d{9}|\d{6,8})$',
+            'title'            => 'Número de documento (Cédula)',
         ),
     );
+
+    // Check if we can use the latest WooCommerce checkout field registration
+    if ( version_compare( WC_VERSION, '8.9.0', '>=' ) ) {
+        woocommerce_register_additional_checkout_field( $field_options );
+        return;
+    }
+
+    // Add admin warnings for older WooCommerce versions
+    add_action('admin_notices', 'addi_wc_version_warning');
+    add_filter('plugin_row_meta', 'addi_plugin_row_meta', 10, 2);
+
+    // Check if experimental function is available
+    if ( function_exists( '__experimental_woocommerce_blocks_register_checkout_field' ) ) {
+        __experimental_woocommerce_blocks_register_checkout_field( $field_options );
+        return;
+    }
+
+    // Fallback for very old versions - add the field using WooCommerce hooks
+    add_filter( 'woocommerce_checkout_fields', function( $fields ) use ( $field_options ) {
+        $fields['billing']['billing_cedula'] = array(
+            'type'          => 'text',
+            'label'         => $field_options['label'],
+            'required'      => $field_options['required'],
+            'class'         => array('form-row-wide'),
+            'autocomplete'  => $field_options['attributes']['autocomplete'],
+            'custom_attributes' => array(
+                'pattern' => $field_options['attributes']['pattern'],
+                'title'   => $field_options['attributes']['title'],
+            ),
+        );
+        return $fields;
+    });
 }
 
 // Hook the custom function to the 'before_woocommerce_init' action
@@ -1111,6 +1141,40 @@ add_action('before_woocommerce_init', 'declare_cart_checkout_blocks_compatibilit
 add_action( 'woocommerce_blocks_loaded', 'register_addi_payment_block' );
 // Hook for add the id number field for checkout blocks
 add_action('woocommerce_init', 'addi_register_id_number_field');
+
+/**
+ * Display admin notice for WooCommerce version compatibility
+ */
+function addi_wc_version_warning() {
+    if ( ! current_user_can( 'manage_woocommerce' ) ) {
+        return;
+    }
+
+    echo '<div class="notice notice-warning">
+        <p>' . sprintf(
+            __('ADDI Payment Gateway: Tu versión de WooCommerce (%s) es anterior a la versión recomendada (8.9.0). Aunque el plugin seguirá funcionando, te recomendamos actualizar WooCommerce para tener la mejor experiencia con el metodo de pago.', 'buy-now-pay-later-addi'),
+            WC_VERSION
+        ) . '</p>
+    </div>';
+}
+
+/**
+ * Add version compatibility notice to plugin meta row
+ */
+function addi_plugin_row_meta($links, $file) {
+    if (plugin_basename(__FILE__) !== $file) {
+        return $links;
+    }
+
+    if (version_compare(WC_VERSION, '8.9.0', '<')) {
+        $row_meta = array(
+            'version_warning' => '<span style="color:rgb(129, 0, 0);">' . __('⚠️ Recomendación: Tener la versión 8.9.0 o superior de WooCommerce. Tu versión actual es: '. WC_VERSION, 'buy-now-pay-later-addi') . '</span>'
+        );
+        return array_merge($links, $row_meta);
+    }
+
+    return $links;
+}
 
 function cancel_addi_order($order, $auth, $amount)
 {

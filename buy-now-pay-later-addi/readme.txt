@@ -2,11 +2,11 @@
 Contributors: pabloandresm936, christian7sr
 Author: Addi
 Author URI: https://co.addi.com/
-Tags: woocommerce, addi, credit, payment, payment-gateway, PSE, bnpn, bnpl
+Tags: credit, payment, PSE, bnpn, bnpl
 Requires at least: 5.2
 Tested up to: 6.7
 Requires PHP: 7.0
-Stable tag: 2.0.0
+Stable tag: 2.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,10 @@ Nota: Para garantizar que recibes correctamente la respuesta por parte de ADDI, 
 3. El nuevo método de pago se mostrará en el checkout de tu sitio!.
 
 == Changelog ==
+= 2.0.1 2025-04-15 =
+* Fix Tags
+* Fix message for old woocommerce version
+
 = 2.0.0 2025-03-17 =
 * Fixed the home banner issue.
 * Fixed the widget display issue when the plugin is disabled.
