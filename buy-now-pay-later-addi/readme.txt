@@ -4,9 +4,9 @@ Author: Addi
 Author URI: https://co.addi.com/
 Tags: credit, payment, PSE, bnpn, bnpl
 Requires at least: 5.2
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 7.0
-Stable tag: 2.0.1
+Stable tag: 2.0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,10 @@ Nota: Para garantizar que recibes correctamente la respuesta por parte de ADDI, 
 3. El nuevo método de pago se mostrará en el checkout de tu sitio!.
 
 == Changelog ==
+= 2.0.2 2025-04-16 =
+* Avoid javascript errors with other plugins in checkout blocks
+* Upload compatibility with 6.8 WordPress version
+
 = 2.0.1 2025-04-15 =
 * Fix Tags
 * Fix message for old woocommerce version

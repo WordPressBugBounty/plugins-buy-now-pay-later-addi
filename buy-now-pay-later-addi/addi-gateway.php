@@ -5,7 +5,7 @@
  * Description: Ofrece a tus clientes la posibilidad de comprar a cuotas lo que quieran, cuando quieran, pagando después con <strong>Addi</strong>. En minutos y sin complicaciones.
  * Author: Addi
  * Author URI: https://co.addi.com/
- * Version: 2.0.1
+ * Version: 2.0.2
  * Requires at least: 5.2
  * Requires PHP:      7.0
  * License: GPL v2 or later
@@ -1143,6 +1143,16 @@ add_action( 'woocommerce_blocks_loaded', 'register_addi_payment_block' );
 add_action('woocommerce_init', 'addi_register_id_number_field');
 
 /**
+ * Handle AJAX request to dismiss the version warning
+ */
+function dismiss_addi_version_warning() {
+    $user_id = get_current_user_id();
+    update_user_meta($user_id, 'addi_wc_version_warning_dismissed', true);
+    wp_die();
+}
+add_action('wp_ajax_dismiss_addi_version_warning', 'dismiss_addi_version_warning');
+
+/**
  * Display admin notice for WooCommerce version compatibility
  */
 function addi_wc_version_warning() {
@@ -1150,12 +1160,30 @@ function addi_wc_version_warning() {
         return;
     }
 
-    echo '<div class="notice notice-warning">
+    // Check if user has already dismissed the notice
+    $user_id = get_current_user_id();
+    if (get_user_meta($user_id, 'addi_wc_version_warning_dismissed', true)) {
+        return;
+    }
+
+    echo '<div class="notice notice-warning is-dismissible" id="addi-version-warning">
         <p>' . sprintf(
             __('ADDI Payment Gateway: Tu versión de WooCommerce (%s) es anterior a la versión recomendada (8.9.0). Aunque el plugin seguirá funcionando, te recomendamos actualizar WooCommerce para tener la mejor experiencia con el metodo de pago.', 'buy-now-pay-later-addi'),
             WC_VERSION
         ) . '</p>
-    </div>';
+    </div>
+    <script>
+    jQuery(document).ready(function($) {
+        $(document).on("click", "#addi-version-warning .notice-dismiss", function() {
+            $.ajax({
+                url: ajaxurl,
+                data: {
+                    action: "dismiss_addi_version_warning"
+                }
+            });
+        });
+    });
+    </script>';
 }
 
 /**

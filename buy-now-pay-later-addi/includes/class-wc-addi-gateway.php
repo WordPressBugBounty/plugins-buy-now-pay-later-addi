@@ -411,7 +411,7 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
         $background_color = get_background_color();
 
         //TODO: change this per version, this is meant to be used for observability
-        $this->version = '2.0.1';
+        $this->version = '2.0.2';
         // Define plugin attributes.
         $this->id = 'addi';
         $this->icon = strpos($background_color, '000') !== false ? plugins_url('../assets/ADDI_logo_white.png', __FILE__) : plugins_url('../assets/ADDI_logo.png', __FILE__);

@@ -11,14 +11,14 @@ if (!validateDependencies()) {
     // Exit without initializing if dependencies are missing
     throw new Error('Required WooCommerce or WordPress dependencies are missing');
 }
-const settings = window.wc.wcSettings.getSetting('addi_data', {});
-const label = window.wp.htmlEntities.decodeEntities(settings.title) || window.wp.i18n.__('Addi', 'addi');
-const icon = settings.icon;
-const Content = () => {
-    return window.wp.htmlEntities.decodeEntities(settings.description || '');
+const settingsAddi = window.wc.wcSettings.getSetting('addi_data', {});
+const labelAddi = window.wp.htmlEntities.decodeEntities(settingsAddi.title) || window.wp.i18n.__('Addi', 'addi');
+const iconAddi = settingsAddi.icon;
+const Content_Addi = () => {
+    return window.wp.htmlEntities.decodeEntities(settingsAddi.description || '');
 };
 
-const Block_Gateway = {
+const Block_Gateway_Addi = {
     name: 'addi',
     label: window.wp.element.createElement(() =>
         window.wp.element.createElement(
@@ -29,10 +29,10 @@ const Block_Gateway = {
                 'z-index': '0'
             }
         },
-            settings.title + "  ",
+            settingsAddi.title + "  ",
             window.wp.element.createElement("img", {
-                src: icon,
-                alt: settings.title,
+                src: iconAddi,
+                alt: settingsAddi.title,
                 style: {
                     float: 'right',
                     height: '25px'
@@ -52,15 +52,15 @@ const Block_Gateway = {
             }          
         ),
         window.wp.element.createElement('div', {
-            dangerouslySetInnerHTML: { __html: settings.description }
+            dangerouslySetInnerHTML: { __html: settingsAddi.description || '' }
         })
     ),
-    edit: Object(window.wp.element.createElement)(Content, null),
+    edit: Object(window.wp.element.createElement)(Content_Addi, null),
     canMakePayment: () => true,
-    ariaLabel: label,
+    ariaLabel: labelAddi,
     supports: {
-        features: settings.supports,
+        features: settingsAddi.supports,
     },
 };
 
-window.wc.wcBlocksRegistry.registerPaymentMethod(Block_Gateway);
+window.wc.wcBlocksRegistry.registerPaymentMethod(Block_Gateway_Addi);
