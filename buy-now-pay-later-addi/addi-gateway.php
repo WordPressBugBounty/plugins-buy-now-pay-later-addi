@@ -5,7 +5,7 @@
  * Description: Ofrece a tus clientes la posibilidad de comprar a cuotas lo que quieran, cuando quieran, pagando después con <strong>Addi</strong>. En minutos y sin complicaciones.
  * Author: Addi
  * Author URI: https://co.addi.com/
- * Version: 2.0.2
+ * Version: 2.0.3
  * Requires at least: 5.2
  * Requires PHP:      7.0
  * License: GPL v2 or later
@@ -1063,7 +1063,7 @@ function addi_order_refunded($order_id, $refund_id)
 }
 
 // Custom function to declare compatibility with cart_checkout_blocks feature
-function declare_cart_checkout_blocks_compatibility() {
+function declare_cart_checkout_blocks_compatibility_addi() {
     // Check if the required class exists
     if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
         // Declare compatibility for 'cart_checkout_blocks'
@@ -1136,7 +1136,7 @@ function addi_register_id_number_field() {
 }
 
 // Hook the custom function to the 'before_woocommerce_init' action
-add_action('before_woocommerce_init', 'declare_cart_checkout_blocks_compatibility');
+add_action('before_woocommerce_init', 'declare_cart_checkout_blocks_compatibility_addi');
 // Hook the custom function to the 'woocommerce_blocks_loaded' action
 add_action( 'woocommerce_blocks_loaded', 'register_addi_payment_block' );
 // Hook for add the id number field for checkout blocks
