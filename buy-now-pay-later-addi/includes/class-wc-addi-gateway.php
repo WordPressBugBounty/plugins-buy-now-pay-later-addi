@@ -411,7 +411,7 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
         $background_color = get_background_color();
 
         //TODO: change this per version, this is meant to be used for observability
-        $this->version = '2.0.3';
+        $this->version = '2.0.4';
         // Define plugin attributes.
         $this->id = 'addi';
         $this->icon = strpos($background_color, '000') !== false ? plugins_url('../assets/ADDI_logo_white.png', __FILE__) : plugins_url('../assets/ADDI_logo.png', __FILE__);
@@ -1815,6 +1815,7 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
 
             // // Get Order Client
             $id = '';
+            // Check if the field_id is set in the classic checkout
             if (isset($this->field_id) && ($this->field_id !== '')) {
                 $id = WC()->checkout->get_value('' . $this->field_id . '');
 
@@ -1849,28 +1850,25 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
 
             $client->idType = (get_locale() == 'pt_PT' || get_locale() == 'pt_BR') ? 'CPF' : 'CC';
 
-            $from_blocks = class_exists('Automattic\\WooCommerce\\Blocks\\Payments\\Integrations\\AbstractPaymentMethodType') && function_exists('wc_get_page_id') && has_block('woocommerce/checkout', wc_get_page_id('checkout'));
-            
-            if($from_blocks){
-                $request = json_decode(file_get_contents('php://input'), true);
-                if (isset($request['billing_address']['addi/cedula-id'])) {
-                    $client->idNumber = sanitize_text_field($request['billing_address']['addi/cedula-id']);
-                }else if (isset($request['shipping_address']['addi/cedula-id'])) {
-                    $client->idNumber = sanitize_text_field($request['shipping_address']['addi/cedula-id']);
-                }else{
-                    error_log('No se recibió la cédula en el checkout.');
-                    $error_message = __('No se recibió la cédula en el checkout.', 'buy-now-pay-later-addi');
+            $request = json_decode(file_get_contents('php://input'), true);
 
-                    if (wp_is_json_request()) {
-                        throw new Exception($error_message);
-                    } else {
-                        wc_add_notice($error_message, 'error');
-                        return;
-                    }
-                }
+            $id_number = $request['billing_address']['addi/cedula-id'] ?? $request['shipping_address']['addi/cedula-id'] ?? $id ?? null;
+
+            $id_number = sanitize_text_field($id_number);
+
+            if (!empty($id_number)) {
+                $client->idNumber = $id_number;
             } else {
-                $client->idNumber = $id;
+                error_log('ADDI: No se recibió la cédula en el checkout.');
+                $error_message = __('Por favor ingrese su número de cédula para continuar. En caso de no ver el campo, por favor comuníquese con el administrador de la página.', 'buy-now-pay-later-addi');
+                if (wp_is_json_request()) {
+                    throw new Exception($error_message);
+                } else {
+                    wc_add_notice($error_message, 'error');
+                    return;
+                }
             }
+
             $client->firstName = isset($this->field_billing_first_name) && ($this->field_billing_first_name !== '') ?
                 WC()->checkout->get_value('' . $this->field_billing_first_name . '') :
                 (($order->get_shipping_first_name() !== "" && $order->get_shipping_first_name() !== " ") ?
@@ -1941,7 +1939,22 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
 
             // request
             $online_application_response = wp_remote_post($online_app_url, $options_online_application);
+            
+            // Check if the request was successful
+            $status_code = wp_remote_retrieve_response_code($online_application_response);
+            
+            $expected_status_codes = [200, 301, 302];
 
+            if (!in_array($status_code, $expected_status_codes, true)) {
+                $logger->error(
+                    'ADDI API Error - Unexpected status code: ' . $status_code . '\n' .
+                    'Response: ' . print_r($online_application_response, true) . '\n' .
+                    'Request body: ' . $body_online_application . '\n' .
+                    'Request URL: ' . $online_app_url,
+                    array('source' => 'addi-error-handler-log')
+                );
+            }
+            
             // verify if body response is an error or contains data
             $body_online_application_response = json_decode($online_application_response['body'], true);
 

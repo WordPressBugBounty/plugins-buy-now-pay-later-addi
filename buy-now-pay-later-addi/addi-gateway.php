@@ -5,7 +5,7 @@
  * Description: Ofrece a tus clientes la posibilidad de comprar a cuotas lo que quieran, cuando quieran, pagando después con <strong>Addi</strong>. En minutos y sin complicaciones.
  * Author: Addi
  * Author URI: https://co.addi.com/
- * Version: 2.0.3
+ * Version: 2.0.4
  * Requires at least: 5.2
  * Requires PHP:      7.0
  * License: GPL v2 or later
@@ -814,27 +814,13 @@ $fieldEditorForWoocommercePluginPath = 'woo-checkout-field-editor-pro/checkout-f
 $yithWoocommerceCheckoutManagerPath = 'yith-woocommerce-checkout-manager/init.php';
 
 
-//check if id fiel exists in database
-global $wpdb;
+//check if id field exists in wp_options
 $id_field_exists = false;
 
-$table_config_name = $wpdb->prefix . "wc_addi_config";
-$result = $wpdb->get_results($wpdb->prepare("select * from {$table_config_name} where element = %s", "field_id"));
+$addi_settings = get_option('woocommerce_addi_settings', array());
 
-if (isset ($result) && count($result) > 0) {
-
-    foreach ($result as $item) {
-        $id_field = $item->value;
-    }
-
-    if (isset ($id_field) && $id_field !== '') {
-        $id_field_exists = true;
-    }
-
-} else {
-    $wpdb->insert($table_config_name, array('element' => 'field_id', 'value' => ''));
-}
-
+// Check if field_id exists and is not empty in the settings
+$id_field_exists = !empty($addi_settings['field_id']) && trim($addi_settings['field_id']) !== '';
 
 if (
     is_plugin_active($fieldEditorForWoocommercePluginPath) ||

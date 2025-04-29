@@ -6,7 +6,7 @@ Tags: credit, payment, PSE, bnpn, bnpl
 Requires at least: 5.2
 Tested up to: 6.8
 Requires PHP: 7.0
-Stable tag: 2.0.3
+Stable tag: 2.0.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,10 @@ Nota: Para garantizar que recibes correctamente la respuesta por parte de ADDI, 
 3. El nuevo método de pago se mostrará en el checkout de tu sitio!.
 
 == Changelog ==
+= 2.0.4 2025-04-28 =
+* Fix a wrong validations on the checkout and improve the logs
+* Fix issue with the id field in checkout classic
+
 = 2.0.3 2025-04-22 =
 * Fix problem with wompi plugin
 
