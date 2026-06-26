@@ -5,7 +5,7 @@
  * Description: Ofrece a tus clientes la posibilidad de comprar a cuotas lo que quieran, cuando quieran, pagando después con <strong>Addi</strong>. En minutos y sin complicaciones.
  * Author: Addi
  * Author URI: https://co.addi.com/
- * Version: 2.0.4
+ * Version: 2.1.0
  * Requires at least: 5.2
  * Requires PHP:      7.0
  * License: GPL v2 or later
@@ -1266,4 +1266,116 @@ function bnpn_new_title() {
         });
     </script>
     <?php
+}
+
+/**
+ * Encrypts a credential string using AES-256-CBC with the site's SECURE_AUTH_KEY.
+ * Stores IV prepended to ciphertext, base64-encoded.
+ */
+function addi_encrypt_credential($value) {
+    $key    = hash('sha256', SECURE_AUTH_KEY, true);
+    $iv_len = openssl_cipher_iv_length('AES-256-CBC');
+    $iv     = openssl_random_pseudo_bytes($iv_len);
+    $encrypted = openssl_encrypt($value, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
+    return base64_encode($iv . $encrypted);
+}
+
+/**
+ * Decrypts a value previously encrypted with addi_encrypt_credential().
+ * Returns false on any failure (wrong key, corrupted data, empty input).
+ */
+function addi_decrypt_credential($value) {
+    if (empty($value)) {
+        return false;
+    }
+    $data = base64_decode($value, true);
+    if ($data === false) {
+        return false;
+    }
+    $iv_len    = openssl_cipher_iv_length('AES-256-CBC');
+    $iv        = substr($data, 0, $iv_len);
+    $encrypted = substr($data, $iv_len);
+    $key       = hash('sha256', SECURE_AUTH_KEY, true);
+    $decrypted = openssl_decrypt($encrypted, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
+    return ($decrypted === false) ? false : $decrypted;
+}
+
+/**
+ * Encrypts and saves callback credentials to wp_options.
+ */
+function addi_store_callback_credentials($user, $password) {
+    update_option('addi_callback_user',     addi_encrypt_credential($user));
+    update_option('addi_callback_password', addi_encrypt_credential($password));
+}
+
+/**
+ * Retrieves and decrypts callback credentials from wp_options.
+ * Returns ['user' => '...', 'password' => '...'] or false if unavailable or corrupt.
+ */
+function addi_get_callback_credentials() {
+    $enc_user     = get_option('addi_callback_user',     false);
+    $enc_password = get_option('addi_callback_password', false);
+
+    if ($enc_user === false || $enc_password === false) {
+        return false;
+    }
+
+    $user     = addi_decrypt_credential($enc_user);
+    $password = addi_decrypt_credential($enc_password);
+
+    if ($user === false || $password === false) {
+        return false;
+    }
+
+    return array('user' => $user, 'password' => $password);
+}
+
+/**
+ * Fetches callback credentials from Addi's API using a valid Bearer JWT.
+ * Returns ['user' => '...', 'password' => '...'] on success, false on any failure.
+ */
+function addi_fetch_callback_credentials($access_token) {
+    $url      = get_addi_base_url() . 'online-applications/callback-credentials';
+    $response = wp_remote_get($url, array(
+        'headers' => array(
+            'Authorization' => 'Bearer ' . $access_token,
+            'Accept'        => 'application/json',
+        ),
+        'timeout' => 60,
+    ));
+
+    if (is_wp_error($response)) {
+        return false;
+    }
+
+    if (wp_remote_retrieve_response_code($response) !== 200) {
+        return false;
+    }
+
+    $body = json_decode(wp_remote_retrieve_body($response), true);
+
+    if (!isset($body['user'], $body['password'])) {
+        return false;
+    }
+
+    return array('user' => $body['user'], 'password' => $body['password']);
+}
+
+add_action('admin_notices', 'addi_callback_credentials_notice');
+/**
+ * Shows a one-time admin warning when credential fetch failed on settings save.
+ */
+function addi_callback_credentials_notice() {
+    if (!get_transient('addi_callback_credentials_warning')) {
+        return;
+    }
+    if (!current_user_can('manage_woocommerce')) {
+        return;
+    }
+    ?>
+    <div class="notice notice-warning is-dismissible">
+        <p><?php _e('Addi: Hubo un problema al obtener las credenciales de notificación. El plugin seguirá funcionando, pero por favor contacta a soporte de Addi.', 'buy-now-pay-later-addi'); ?></p>
+    </div>
+    <?php
+    delete_transient('addi_callback_credentials_warning');
 }

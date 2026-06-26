@@ -826,31 +826,33 @@ p
 }
 
 /* Addi flex */
-.flex-header, .bnpl-header {
-  display: flex;
-  flex-direction: column;
+.flex-addi-header, .bnpl-addi-header {
+  display: flex !important;
+  flex-direction: column !important;
 }
 
-.flex-header .logo, .bnpl-header .logo {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  margin-bottom: 10px;
+.flex-addi-header .logo, .bnpl-addi-header .logo {
+  display: contents !important;
 }
 
-.flex-header .logo img {
+.addi-inner-container {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.flex-addi-header .logo img {
   width: 78px;
   height: auto;
 }
 
-.bnpl-header .logo img{
+.bnpl-addi-header .logo img{
   margin-bottom: 11px;
   width: 100%;
   max-height: none !important;
   max-width: 270px;
 }
 
-.flex-header .title {
+.flex-addi-header .title {
   font-family: var(--font-addi-family-primary-name);
   font-style: normal;
   font-weight: 700;
@@ -862,6 +864,8 @@ p
 }
 
 .addi-co-description-block.flex {
+  display: inline-flex !important;
+  flex-direction: row !important;
   border-radius: 0;
   border: none;
   font-family: var(--font-addi-family-secondary-name);

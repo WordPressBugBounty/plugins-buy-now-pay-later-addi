@@ -1,6 +1,6 @@
 <div class='addi_description_container flex'>
-    <div style='padding: 20px;'>
-        <div class="flex-header">
+    <div class='addi-inner-container' style='padding: 20px;'>
+        <div class="flex-addi-header">
             <div class="logo">
                 <img src='<?php echo plugins_url( '../../assets/ADDI_logo.png' , __FILE__ ); ?>'>
                 <?php

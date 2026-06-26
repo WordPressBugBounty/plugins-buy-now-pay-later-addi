@@ -4,9 +4,9 @@ Author: Addi
 Author URI: https://co.addi.com/
 Tags: credit, payment, PSE, bnpn, bnpl
 Requires at least: 5.2
-Tested up to: 6.8
+Tested up to: 7.0
 Requires PHP: 7.0
-Stable tag: 2.0.4
+Stable tag: 2.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,13 @@ Nota: Para garantizar que recibes correctamente la respuesta por parte de ADDI, 
 3. El nuevo método de pago se mostrará en el checkout de tu sitio!.
 
 == Changelog ==
+= 2.1.0 2026-06-25 =
+* Security: improve how to handle callback credentials — now fetched dynamically from Addi's API and stored encrypted in wp_options (AES-256-CBC) and validates credentials with auto-refresh
+* Fix: WC_Addi_Gateway_Blocks initialization is now defensive to prevent fatal error on environments where the gateway class is not yet loaded
+* Fix: resolved undefined array key warning for QUERY_STRING in constructor
+* Fix: checkout layout broken on some ally themes — renamed CSS classes to avoid collisions (flex-header → flex-addi-header) and fixed flex layout interference from third-party themes
+* Tested up to WordPress 7.0 and WooCommerce 10.9
+
 = 2.0.4 2025-04-28 =
 * Fix a wrong validations on the checkout and improve the logs
 * Fix issue with the id field in checkout classic

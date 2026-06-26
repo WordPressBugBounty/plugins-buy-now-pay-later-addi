@@ -411,7 +411,7 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
         $background_color = get_background_color();
 
         //TODO: change this per version, this is meant to be used for observability
-        $this->version = '2.0.4';
+        $this->version = '2.1.0';
         // Define plugin attributes.
         $this->id = 'addi';
         $this->icon = strpos($background_color, '000') !== false ? plugins_url('../assets/ADDI_logo_white.png', __FILE__) : plugins_url('../assets/ADDI_logo.png', __FILE__);
@@ -448,9 +448,6 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
         $this->testmode = 'yes' === $this->get_option('testmode');
         $this->custom_order_status = 'yes' === $this->get_option('custom_order_status');
         $this->logs = 'yes' === $this->get_option('logs');
-        // Pre defined , this cannot be changed.
-        $this->callback_user = 'AddiWooCommercePlugin2021';
-        $this->callback_password = 'jDb!mW!ePWjt9z6';
 
         //Widget position
         $this->conf_widget_position = $this->get_option('conf_widget_position');
@@ -667,6 +664,24 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
 
                 /** CUSTOM ORDER STATUS **/
 
+                // Fetch and store dynamic callback credentials
+                $auth_fetch = get_addi_auth();
+                $auth_fetch_body = json_decode(isset($auth_fetch['body']) ? $auth_fetch['body'] : '', true);
+                if (!is_wp_error($auth_fetch) && isset($auth_fetch_body['access_token'])) {
+                    $creds = addi_fetch_callback_credentials($auth_fetch_body['access_token']);
+                    if ($creds !== false) {
+                        addi_store_callback_credentials($creds['user'], $creds['password']);
+                    } else {
+                        $save_logger = wc_get_logger();
+                        $save_logger->error('Addi: Failed to fetch callback credentials on settings save.', array('source' => 'addi-callback-credentials'));
+                        set_transient('addi_callback_credentials_warning', true, DAY_IN_SECONDS);
+                    }
+                } else {
+                    $save_logger = wc_get_logger();
+                    $save_logger->error('Addi: Auth failed when fetching callback credentials on settings save.', array('source' => 'addi-callback-credentials'));
+                    set_transient('addi_callback_credentials_warning', true, DAY_IN_SECONDS);
+                }
+
             }
 
         }, 10, 3);
@@ -689,7 +704,7 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
             $order_id = $order_status = $woocommerce_order_id_query_param = null;
             $table_name = $wpdb->prefix . "wc_addi_gateway";
 
-            $querys = $_SERVER['QUERY_STRING'];
+            $querys = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '';
 
             if (strpos($querys, 'wc-order-id') !== false) {
                 $woocommerce_order_id_query_param = $_GET["wc-order-id"];
@@ -1911,6 +1926,7 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                 'totalTaxesAmount' => number_format(round((($order->get_total() / 1.19) * 1.19) - ($order->get_total() / 1.19), 1), 1, '.', ''),
                 'currency' => (get_locale() == 'pt_PT' || get_locale() == 'pt_BR') ? 'BRL' : 'COP',
                 'ecommercePlatform' => 'WOOCOMMERCE',
+                'ecommerceVersion' => $this->version,
                 'items' => $items,
                 'client' => $client,
                 'shippingAddress' => $client_address,
@@ -2081,100 +2097,121 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
             }
         }
 
-        // verify if user/password are correct
-        if (
-            (base64_encode($_SERVER['PHP_AUTH_USER']) != base64_encode($this->callback_user)) ||
-            (base64_encode($_SERVER['PHP_AUTH_PW']) != base64_encode($this->callback_password))
-        ) {
-            // if not, will return a 401 Unauthorized error
+        // Dynamic credential validation with auto-refresh on mismatch
+        $stored    = addi_get_callback_credentials();
+        $auth_user = isset($_SERVER['PHP_AUTH_USER']) ? $_SERVER['PHP_AUTH_USER'] : '';
+        $auth_pw   = isset($_SERVER['PHP_AUTH_PW'])   ? $_SERVER['PHP_AUTH_PW']   : '';
+
+        $match = $stored !== false
+            && hash_equals($stored['user'],     $auth_user)
+            && hash_equals($stored['password'], $auth_pw);
+
+        if (!$match) {
+            $auth_resp = get_addi_auth();
+            $auth_body = json_decode(isset($auth_resp['body']) ? $auth_resp['body'] : '', true);
+            if (!is_wp_error($auth_resp) && isset($auth_body['access_token'])) {
+                $new_creds = addi_fetch_callback_credentials($auth_body['access_token']);
+                if ($new_creds !== false) {
+                    addi_store_callback_credentials($new_creds['user'], $new_creds['password']);
+                    $match = hash_equals($new_creds['user'],     $auth_user)
+                          && hash_equals($new_creds['password'], $auth_pw);
+                } else {
+                    $logger->info('Addi: Failed to fetch callback credentials during auto-refresh.', array('source' => 'addi-callback-credentials'));
+                }
+            } else {
+                $logger->info('Addi: Auth failed during callback credential auto-refresh.', array('source' => 'addi-callback-credentials'));
+            }
+        }
+
+        if (!$match) {
+            if ($this->logs == 'yes') {
+                $logger->info('Addi: Callback rejected — credential mismatch after auto-refresh.', array('source' => 'addi-callback-credentials'));
+            }
             header('WWW-Authenticate: Basic realm="' . gethostname() . '"');
             header('HTTP/1.0 401 Unauthorized');
-            return 'Bad request, try again.';
-            exit;
-        } else {
-            // init headers to return a success response
-            header("Authorization: Basic " . base64_encode("$this->callback_user':'$this->callback_password"));
-            header('HTTP/1.1 200 OK');
-            // read parameter from body request / response
-            $raw_post = file_get_contents('php://input');
-            $table_name = $wpdb->prefix . "wc_addi_gateway";
+            return;
+        }
 
-            if (!empty($raw_post)) {
-                // handle post data
-                $callback_response = json_decode($raw_post, true);
+        header('HTTP/1.1 200 OK');
+        // read parameter from body request / response
+        $raw_post = file_get_contents('php://input');
+        $table_name = $wpdb->prefix . "wc_addi_gateway";
 
-                $callback_order_id = $callback_response['orderId'];
-                $callback_status = $callback_response['status'];
-                $callback_applicationId = $callback_response['applicationId'];
+        if (!empty($raw_post)) {
+            // handle post data
+            $callback_response = json_decode($raw_post, true);
+
+            $callback_order_id = $callback_response['orderId'];
+            $callback_status = $callback_response['status'];
+            $callback_applicationId = $callback_response['applicationId'];
+
+            try {
+                if (!is_admin()) {
+                    WC()->session->set('order_id_callback', $callback_order_id);
+                    WC()->session->set('order_status_callback', $callback_status);
+                }
+            } catch (Exception $e) {
+                //error logged in logger object
+                $logger->info('  ERROR saving order id/ order status variable in callback method. Error details: ' . $e . ' ', array('source' => 'addi-gateway-log'));
+            }
+            // insert in table taking callback order id / callback status
+            $wpdb->insert($table_name, array('order_id' => $callback_order_id, 'order_status' => $callback_status, 'date' => date("Y-m-d h:i:s")));
+
+            if ($callback_status == 'APPROVED') {
 
                 try {
-                    if (!is_admin()) {
-                        WC()->session->set('order_id_callback', $callback_order_id);
-                        WC()->session->set('order_status_callback', $callback_status);
-                    }
-                } catch (Exception $e) {
-                    //error logged in logger object
-                    $logger->info('  ERROR saving order id/ order status variable in callback method. Error details: ' . $e . ' ', array('source' => 'addi-gateway-log'));
-                }
-                // insert in table taking callback order id / callback status
-                $wpdb->insert($table_name, array('order_id' => $callback_order_id, 'order_status' => $callback_status, 'date' => date("Y-m-d h:i:s")));
 
-                if ($callback_status == 'APPROVED') {
-
-                    try {
-
-                        // get woocommerce order object
-                        $order = wc_get_order($callback_order_id);
-                        // The text for the note
-                        $note = __("ApplicationId : " . $callback_applicationId);
-                        // Add the note
-                        $order->add_order_note($note);
-                        // mark this order as completed
-                        $order->payment_complete();
-
-                        if ($this->custom_order_status == 'yes') {
-                            $order->update_status('addi-approved', '', true);
-                        }
-
-                        // Reduce stock of product in the store
-                        wc_reduce_stock_levels($order->get_id());
-                        $order->set_transaction_id($callback_applicationId);
-                        $order->save();
-
-                        // // Empty cart
-                        if (isset($woocommerce) && isset($woocommerce->cart)) {
-                            $woocommerce->cart->empty_cart();
-                        }
-
-                        if ($this->logs == 'yes') {
-                            $logger->info('Order with ID = ' . $callback_order_id . '. not proccesed correctly. ', array('source' => 'auth-log'));
-                        }
-                    } catch (Exception $e) {
-                        if ($this->logs == 'yes') {
-                            $logger->info('Error processing order with ID =  ' . $callback_order_id . '. Details : ' . $e, array('source' => 'auth-log'));
-                        }
-                    }
-                } else {
                     // get woocommerce order object
                     $order = wc_get_order($callback_order_id);
                     // The text for the note
                     $note = __("ApplicationId : " . $callback_applicationId);
                     // Add the note
                     $order->add_order_note($note);
+                    // mark this order as completed
+                    $order->payment_complete();
+
+                    if ($this->custom_order_status == 'yes') {
+                        $order->update_status('addi-approved', '', true);
+                    }
+
+                    // Reduce stock of product in the store
+                    wc_reduce_stock_levels($order->get_id());
                     $order->set_transaction_id($callback_applicationId);
                     $order->save();
-                }
 
-                // returning same data post
-                echo $raw_post;
-                // exit
-                die();
+                    // // Empty cart
+                    if (isset($woocommerce) && isset($woocommerce->cart)) {
+                        $woocommerce->cart->empty_cart();
+                    }
+
+                    if ($this->logs == 'yes') {
+                        $logger->info('Order with ID = ' . $callback_order_id . '. not proccesed correctly. ', array('source' => 'auth-log'));
+                    }
+                } catch (Exception $e) {
+                    if ($this->logs == 'yes') {
+                        $logger->info('Error processing order with ID =  ' . $callback_order_id . '. Details : ' . $e, array('source' => 'auth-log'));
+                    }
+                }
             } else {
-                // returning same data post
-                echo $raw_post;
-                // exit
-                die();
+                // get woocommerce order object
+                $order = wc_get_order($callback_order_id);
+                // The text for the note
+                $note = __("ApplicationId : " . $callback_applicationId);
+                // Add the note
+                $order->add_order_note($note);
+                $order->set_transaction_id($callback_applicationId);
+                $order->save();
             }
+
+            // returning same data post
+            echo $raw_post;
+            // exit
+            die();
+        } else {
+            // returning same data post
+            echo $raw_post;
+            // exit
+            die();
         }
     }
 

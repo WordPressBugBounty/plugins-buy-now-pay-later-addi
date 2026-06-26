@@ -15,4 +15,7 @@ $wpdb->query("DROP TABLE IF EXISTS {$table_name}");
 
 $table_config_name = $wpdb->prefix .'wc_addi_config';
 $wpdb->query("DROP TABLE IF EXISTS {$table_config_name}");
+
+delete_option('addi_callback_user');
+delete_option('addi_callback_password');
 ?>
