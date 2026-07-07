@@ -6,7 +6,7 @@ Tags: credit, payment, PSE, bnpn, bnpl
 Requires at least: 5.2
 Tested up to: 7.0
 Requires PHP: 7.0
-Stable tag: 2.1.0
+Stable tag: 2.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,11 @@ Nota: Para garantizar que recibes correctamente la respuesta por parte de ADDI, 
 3. El nuevo método de pago se mostrará en el checkout de tu sitio!.
 
 == Changelog ==
+= 2.1.1 2026-07-06 =
+* Fix incorrect testmode URL selection when fetching callback credentials
+* Fix callback credentials not being fetched on first settings save
+* Improved error logging for callback credential failures
+
 = 2.1.0 2026-06-25 =
 * Security: improve how to handle callback credentials — now fetched dynamically from Addi's API and stored encrypted in wp_options (AES-256-CBC) and validates credentials with auto-refresh
 * Fix: WC_Addi_Gateway_Blocks initialization is now defensive to prevent fatal error on environments where the gateway class is not yet loaded

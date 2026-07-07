@@ -411,7 +411,7 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
         $background_color = get_background_color();
 
         //TODO: change this per version, this is meant to be used for observability
-        $this->version = '2.1.0';
+        $this->version = '2.1.1';
         // Define plugin attributes.
         $this->id = 'addi';
         $this->icon = strpos($background_color, '000') !== false ? plugins_url('../assets/ADDI_logo_white.png', __FILE__) : plugins_url('../assets/ADDI_logo.png', __FILE__);
@@ -484,6 +484,25 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
 
         // action hook to update options to new payment gateway
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
+
+        add_action('woocommerce_update_options_payment_gateways_' . $this->id, function () {
+            $auth_fetch = get_addi_auth();
+            $auth_fetch_body = json_decode(isset($auth_fetch['body']) ? $auth_fetch['body'] : '', true);
+            if (!is_wp_error($auth_fetch) && isset($auth_fetch_body['access_token'])) {
+                $creds = addi_fetch_callback_credentials($auth_fetch_body['access_token']);
+                if ($creds !== false) {
+                    addi_store_callback_credentials($creds['user'], $creds['password']);
+                } else {
+                    $logger = wc_get_logger();
+                    $logger->error('Addi: Failed to fetch callback credentials on settings save.', array('source' => 'addi-callback-credentials'));
+                    set_transient('addi_callback_credentials_warning', true, DAY_IN_SECONDS);
+                }
+            } else {
+                $logger = wc_get_logger();
+                $logger->error('Addi: Auth failed when fetching callback credentials on settings save.', array('source' => 'addi-callback-credentials'));
+                set_transient('addi_callback_credentials_warning', true, DAY_IN_SECONDS);
+            }
+        }, 20);
 
         // action hook to link css / javascripts files or related to it.
         add_action('wp_enqueue_scripts', array($this, 'payment_scripts'));
@@ -663,24 +682,6 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                 }
 
                 /** CUSTOM ORDER STATUS **/
-
-                // Fetch and store dynamic callback credentials
-                $auth_fetch = get_addi_auth();
-                $auth_fetch_body = json_decode(isset($auth_fetch['body']) ? $auth_fetch['body'] : '', true);
-                if (!is_wp_error($auth_fetch) && isset($auth_fetch_body['access_token'])) {
-                    $creds = addi_fetch_callback_credentials($auth_fetch_body['access_token']);
-                    if ($creds !== false) {
-                        addi_store_callback_credentials($creds['user'], $creds['password']);
-                    } else {
-                        $save_logger = wc_get_logger();
-                        $save_logger->error('Addi: Failed to fetch callback credentials on settings save.', array('source' => 'addi-callback-credentials'));
-                        set_transient('addi_callback_credentials_warning', true, DAY_IN_SECONDS);
-                    }
-                } else {
-                    $save_logger = wc_get_logger();
-                    $save_logger->error('Addi: Auth failed when fetching callback credentials on settings save.', array('source' => 'addi-callback-credentials'));
-                    set_transient('addi_callback_credentials_warning', true, DAY_IN_SECONDS);
-                }
 
             }
 
@@ -2116,17 +2117,16 @@ class WC_Addi_Gateway extends WC_Payment_Gateway
                     $match = hash_equals($new_creds['user'],     $auth_user)
                           && hash_equals($new_creds['password'], $auth_pw);
                 } else {
-                    $logger->info('Addi: Failed to fetch callback credentials during auto-refresh.', array('source' => 'addi-callback-credentials'));
+                    $logger->error('Addi: Failed to fetch callback credentials during auto-refresh.', array('source' => 'addi-callback-credentials'));
                 }
             } else {
-                $logger->info('Addi: Auth failed during callback credential auto-refresh.', array('source' => 'addi-callback-credentials'));
+                $auth_error = is_wp_error($auth_resp) ? $auth_resp->get_error_message() : (isset($auth_body['error']) ? $auth_body['error'] : 'unknown');
+                $logger->error('Addi: Auth failed during callback credential auto-refresh. Error: ' . $auth_error, array('source' => 'addi-callback-credentials'));
             }
         }
 
         if (!$match) {
-            if ($this->logs == 'yes') {
-                $logger->info('Addi: Callback rejected — credential mismatch after auto-refresh.', array('source' => 'addi-callback-credentials'));
-            }
+            $logger->error('Addi: Callback rejected — credential mismatch after auto-refresh.', array('source' => 'addi-callback-credentials'));
             header('WWW-Authenticate: Basic realm="' . gethostname() . '"');
             header('HTTP/1.0 401 Unauthorized');
             return;

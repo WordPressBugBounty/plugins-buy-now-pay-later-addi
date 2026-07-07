@@ -5,7 +5,7 @@
  * Description: Ofrece a tus clientes la posibilidad de comprar a cuotas lo que quieran, cuando quieran, pagando después con <strong>Addi</strong>. En minutos y sin complicaciones.
  * Author: Addi
  * Author URI: https://co.addi.com/
- * Version: 2.1.0
+ * Version: 2.1.1
  * Requires at least: 5.2
  * Requires PHP:      7.0
  * License: GPL v2 or later
@@ -952,7 +952,9 @@ function get_addi_auth()
 {
     $addi_options = get_option('woocommerce_addi_settings');
 
-    $api_selected = $addi_options['testmode'] ? ((get_locale() == 'pt_PT' || get_locale() == 'pt_BR') ? 'https://api.addi-staging-br.com' : 'https://api.staging.addi.com') : ((get_locale() == 'pt_PT' || get_locale() == 'pt_BR') ? 'https://api.addi.com.br' : 'https://api.addi.com');
+    $is_testmode = isset($addi_options['testmode']) && $addi_options['testmode'] === 'yes';
+
+    $api_selected = $is_testmode ? ((get_locale() == 'pt_PT' || get_locale() == 'pt_BR') ? 'https://api.addi-staging-br.com' : 'https://api.staging.addi.com') : ((get_locale() == 'pt_PT' || get_locale() == 'pt_BR') ? 'https://api.addi.com.br' : 'https://api.addi.com');
 
     $body_auth = [
         'audience' => $api_selected,
@@ -974,7 +976,7 @@ function get_addi_auth()
     ];
 
     // getting api url based on test mode checkbox
-    $auth_app_url = $addi_options['testmode'] ? ((get_locale() == 'pt_PT' || get_locale() == 'pt_BR')
+    $auth_app_url = $is_testmode ? ((get_locale() == 'pt_PT' || get_locale() == 'pt_BR')
         ? 'https://auth.addi-staging-br.com/oauth/token' : 'https://auth.addi-staging.com/oauth/token')
         : ((get_locale() == 'pt_PT' || get_locale() == 'pt_BR') ? 'https://auth.addi.com.br/oauth/token'
             : 'https://auth.addi.com/oauth/token');
@@ -985,7 +987,7 @@ function get_addi_auth()
 function get_addi_base_url()
 {
     $addi_options = get_option('woocommerce_addi_settings');
-    $base_url = $addi_options['testmode'] ?
+    $base_url = (isset($addi_options['testmode']) && $addi_options['testmode'] === 'yes') ?
         ((get_locale() == 'pt_PT' || get_locale() == 'pt_BR') ?
             'https://api.addi-staging-br.com/v1/' : 'https://api.addi-staging.com/v1/') :
         ((get_locale() == 'pt_PT' || get_locale() == 'pt_BR') ?
